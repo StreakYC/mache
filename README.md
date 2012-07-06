@@ -211,7 +211,7 @@ Configuration of the export process is done through a series of parameters that 
  - **queueName** the Google App Engine queue to use for exporter tasks. Defaults to the default Google App Engine queue.
  - **msPerFile** the number of milliseconds worth of logs that should be aggregated in each csv file. This should be an amount that can be processed in the 10 minute offline task request limit. You should also update your cron.xml entry to run at this interval. This must divide *msPerTable*. **See the "Changing the aggregation parameters" section before changing msPerFile or msPerTable or you may lose data**. Default: 120000 (= 2 mins).
  - **msPerTable** the number of milliseconds worth of logs that should be aggregated in each BigQuery table. Default: 86400000 (= 1 day)
- - **logLevel** the minimum log level to export. One of: DEBUG, ERROR, FATAL, INFO, or WARN. Default: DEBUG
+ - **logLevel** the minimum log level to export. One of: ALL, DEBUG, ERROR, FATAL, INFO, or WARN. Default: ALL
 
 Most parameters can also be set by changing the appropriate getDefault method in LogExportCronTask and recompiling the jar if you prefer.
 
