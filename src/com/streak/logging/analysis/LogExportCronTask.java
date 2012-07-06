@@ -87,8 +87,10 @@ public class LogExportCronTask extends HttpServlet {
 			logLevel = getDefaultLogLevel();
 		}
 		
-		// Verify that log level is one of the enum values
-		LogLevel.valueOf(logLevel);
+		// Verify that log level is one of the enum values or ALL
+    if (!"ALL".equals(logLevel)) {
+		  LogLevel.valueOf(logLevel);
+    }
 		
 		String bucketName = req.getParameter(AnalysisConstants.BUCKET_NAME_PARAM);
 		if (!AnalysisUtility.areParametersValid(bucketName)) {
