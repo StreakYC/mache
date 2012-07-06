@@ -71,7 +71,7 @@ public class AnalysisUtility {
 	}
 
 	public static String escapeAndQuoteField(String field) {
-		return "\"" + field.replace("\"", "\"\"").replace("\n", "\\n") + "\"";
+		return "\"" + field.replace("\"", "\"\"").replace("\r\n", "\r").replace("\n", "\r") + "\"";
 	}
 
 	public static String createLogKey(String schemaHash, long startTime, long endTime) {
