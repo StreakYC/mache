@@ -159,8 +159,9 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 			sb.append("\n");
       if (System.currentTimeMillis() - lastOpenMillis > OPEN_MILLIS_LIMIT) {
         logsWriter.close();
-        FileWriteChannel logsChannel = fileService.openWriteChannel(logsFile, true);
-        PrintWriter logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
+        logsChannel = fileService.openWriteChannel(logsFile, true);
+        logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
+        lastOpenMillis = System.currentTimeMillis();
       }
 			if (sb.length() > FILE_BUFFER_LIMIT) {
 				logsWriter.print(sb);
