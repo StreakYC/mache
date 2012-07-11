@@ -49,7 +49,11 @@ import com.google.appengine.api.taskqueue.TaskOptions.Builder;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
 public class StoreLogsInCloudStorageTask extends HttpServlet {
+  // Batch writes so that they're at least FILE_BUFFER_LIMIT bytes
 	private static final int FILE_BUFFER_LIMIT = 100000;
+
+  // Reopen file every OPEN_MILLIS_LIMIT ms
+  private static final int OPEN_MILLIS_LIMIT = 20000;
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/plain");
@@ -108,6 +112,7 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		  .setKey(fileKey)
 		  .setAcl("project-private");
 		AppEngineFile logsFile = fileService.createNewGSFile(optionsBuilder.build());
+    long lastOpenMillis = System.currentTimeMillis();
 		FileWriteChannel logsChannel = fileService.openWriteChannel(logsFile, true);
 		PrintWriter logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
 		Iterable<RequestLogs> logs = ls.fetch(lq);
@@ -152,6 +157,11 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 				exporterStartOffset += exporter.getFieldCount();
 			}
 			sb.append("\n");
+      if (System.currentTimeMillis() - lastOpenMillis > OPEN_MILLIS_LIMIT) {
+        logsWriter.close();
+        FileWriteChannel logsChannel = fileService.openWriteChannel(logsFile, true);
+        PrintWriter logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
+      }
 			if (sb.length() > FILE_BUFFER_LIMIT) {
 				logsWriter.print(sb);
 				sb.delete(0,  sb.length());
