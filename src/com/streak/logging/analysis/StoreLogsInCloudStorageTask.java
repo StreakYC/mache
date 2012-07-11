@@ -49,21 +49,21 @@ import com.google.appengine.api.taskqueue.TaskOptions.Builder;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
 public class StoreLogsInCloudStorageTask extends HttpServlet {
-  // Batch writes so that they're at least FILE_BUFFER_LIMIT bytes
+	// Batch writes so that they're at least FILE_BUFFER_LIMIT bytes
 	private static final int FILE_BUFFER_LIMIT = 100000;
 
-  // Reopen file every OPEN_MILLIS_LIMIT ms
-  private static final int OPEN_MILLIS_LIMIT = 20000;
+	// Reopen file every OPEN_MILLIS_LIMIT ms
+	private static final int OPEN_MILLIS_LIMIT = 20000;
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/plain");
-		
+
 		String startMsStr = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.START_MS_PARAM);
 		long startMs = Long.parseLong(startMsStr);
-		
+
 		String endMsStr = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.END_MS_PARAM);
 		long endMs = Long.parseLong(endMsStr);
-		
+
 		String bucketName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BUCKET_NAME_PARAM);
 		String queueName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.QUEUE_NAME_PARAM);
 		String logLevelStr = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.LOG_LEVEL_PARAM);
@@ -74,45 +74,45 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		String exporterSetClassStr = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_FIELD_EXPORTER_SET_PARAM);
 		BigqueryFieldExporterSet exporterSet = AnalysisUtility.instantiateExporterSet(exporterSetClassStr);
 		String schemaHash = AnalysisUtility.computeSchemaHash(exporterSet);
-		
+
 		List<String> fieldNames = new ArrayList<String>();
 		List<String> fieldTypes = new ArrayList<String>();
-		
+
 		AnalysisUtility.populateSchema(exporterSet, fieldNames, fieldTypes);
-		
+
 		String respStr = generateExportables(startMs, endMs, bucketName, schemaHash, exporterSet, fieldNames, fieldTypes, logLevel);
 		Queue taskQueue = QueueFactory.getQueue(queueName);
 		taskQueue.add(
 				Builder.withUrl(
 						AnalysisUtility.getRequestBaseName(req) + 
 						"/loadCloudStorageToBigquery?" + req.getQueryString())
-					   .method(Method.GET));
+						.method(Method.GET));
 		resp.getWriter().println(respStr);
 	}
-		
+
 	protected String generateExportables(long startMs, long endMs, String bucketName, String schemaHash,  BigqueryFieldExporterSet exporterSet, List<String> fieldNames, List<String> fieldTypes, LogLevel logLevel) throws IOException {
 		List<BigqueryFieldExporter> exporters = exporterSet.getExporters();
-		
+
 		LogService ls = LogServiceFactory.getLogService();
 		LogQuery lq = new LogQuery();
 		lq = lq.startTimeUsec(startMs * 1000)
-			   .endTimeUsec(endMs * 1000)
-			   .includeAppLogs(true);
-		
+				.endTimeUsec(endMs * 1000)
+				.includeAppLogs(true);
+
 		if (logLevel != null) {
-			   lq = lq.minLogLevel(logLevel);
+			lq = lq.minLogLevel(logLevel);
 		}
-		
+
 		String fileKey = AnalysisUtility.createLogKey(schemaHash, startMs, endMs);
 		String schemaKey = AnalysisUtility.createSchemaKey(schemaHash, startMs, endMs);
-		
+
 		FileService fileService = FileServiceFactory.getFileService();
 		GSFileOptionsBuilder optionsBuilder = new GSFileOptionsBuilder()
-		  .setBucket(bucketName)
-		  .setKey(fileKey)
-		  .setAcl("project-private");
+		.setBucket(bucketName)
+		.setKey(fileKey)
+		.setAcl("project-private");
 		AppEngineFile logsFile = fileService.createNewGSFile(optionsBuilder.build());
-    long lastOpenMillis = System.currentTimeMillis();
+		long lastOpenMillis = System.currentTimeMillis();
 		FileWriteChannel logsChannel = fileService.openWriteChannel(logsFile, true);
 		PrintWriter logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
 		Iterable<RequestLogs> logs = ls.fetch(lq);
@@ -125,7 +125,7 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		nf.setMaximumFractionDigits(30);
 		nf.setMinimumIntegerDigits(1);
 		nf.setMaximumIntegerDigits(30);
-		
+
 		int resultsCount = 0;
 		StringBuffer sb = new StringBuffer();
 		for (RequestLogs log : logs) {
@@ -143,7 +143,7 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 								"Exporter " + exporter.getClass().getCanonicalName() + 
 								" didn't return field for " + fieldNames.get(currentOffset));
 					}
-					
+
 					// These strings have been interned so == works for comparison
 					if ("string" == fieldTypes.get(currentOffset)) {
 						sb.append(AnalysisUtility.escapeAndQuoteField((String) fieldValue));
@@ -157,12 +157,12 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 				exporterStartOffset += exporter.getFieldCount();
 			}
 			sb.append("\n");
-      if (System.currentTimeMillis() - lastOpenMillis > OPEN_MILLIS_LIMIT) {
-        logsWriter.close();
-        logsChannel = fileService.openWriteChannel(logsFile, true);
-        logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
-        lastOpenMillis = System.currentTimeMillis();
-      }
+			if (System.currentTimeMillis() - lastOpenMillis > OPEN_MILLIS_LIMIT) {
+				logsWriter.close();
+				logsChannel = fileService.openWriteChannel(logsFile, true);
+				logsWriter = new PrintWriter(Channels.newWriter(logsChannel, "UTF8"));
+				lastOpenMillis = System.currentTimeMillis();
+			}
 			if (sb.length() > FILE_BUFFER_LIMIT) {
 				logsWriter.print(sb);
 				sb.delete(0,  sb.length());
@@ -175,7 +175,7 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		}
 		logsWriter.close();
 		logsChannel.closeFinally();
-		
+
 		return "Saved " + resultsCount + " logs to gs://" + bucketName + "/" + fileKey;
 	}
 }
