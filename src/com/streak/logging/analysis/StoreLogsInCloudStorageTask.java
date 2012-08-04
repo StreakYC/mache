@@ -129,6 +129,10 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		int resultsCount = 0;
 		StringBuffer sb = new StringBuffer();
 		for (RequestLogs log : logs) {
+			// filter logs
+			if (exporterSet.skipLog(log)) {
+				continue;
+			}
 			int exporterStartOffset = 0;
 			int currentOffset = 0;
 			for (BigqueryFieldExporter exporter : exporters) {
