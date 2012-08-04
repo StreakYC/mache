@@ -18,6 +18,8 @@ package com.streak.logging.analysis;
 
 import java.util.List;
 
+import com.google.appengine.api.log.RequestLogs;
+
 /**
  * BigqueryFieldExporterSet holds a List of BigqueryFieldExporters.
  * 
@@ -32,4 +34,13 @@ public interface BigqueryFieldExporterSet {
 	 * @return the exporters in the set
 	 */
 	public List<BigqueryFieldExporter> getExporters();
+
+	/**
+	 * Let custom exporters to filter logs 
+	 * 
+	 * @param log
+	 * @return true if given log request should be skipped
+	 */
+	public boolean skipLog(RequestLogs log);
+
 }
