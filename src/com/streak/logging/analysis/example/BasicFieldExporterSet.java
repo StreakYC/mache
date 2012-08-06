@@ -19,6 +19,7 @@ package com.streak.logging.analysis.example;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.appengine.api.log.RequestLogs;
 import com.streak.logging.analysis.BigqueryFieldExporter;
 import com.streak.logging.analysis.BigqueryFieldExporterSet;
 
@@ -35,5 +36,10 @@ public class BasicFieldExporterSet implements BigqueryFieldExporterSet {
 				new UserFieldExporter(),
 				new VersionFieldExporter());
 	}
-
+	
+	@Override
+	public boolean skipLog(RequestLogs log)
+	{
+		return false;
+	}
 }
