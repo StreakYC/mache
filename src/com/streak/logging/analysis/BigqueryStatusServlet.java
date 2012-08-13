@@ -18,6 +18,8 @@ package com.streak.logging.analysis;
 
 import java.io.IOException;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,6 +32,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Job;
+import com.google.api.services.bigquery.model.JobList;
 import com.google.api.services.bigquery.model.JobConfiguration;
 import com.google.api.services.bigquery.model.JobConfigurationLoad;
 import com.google.api.services.bigquery.model.ProjectList;
@@ -57,7 +60,18 @@ public class BigqueryStatusServlet extends HttpServlet {
 		
 		for (Projects project : projectResponse.getProjects()) {
 			Bigquery.Jobs.List jobsRequest = bigquery.jobs().list(project.getId());
-			resp.getWriter().println("Recent Jobs for " + project.getId() + ":" + jobsRequest.execute().toPrettyString());	
+      JobList jobsResponse = jobsRequest.execute();
+      List<JobList.Jobs> jobs = jobsResponse.getJobs();
+      resp.getWriter().println("=== Recent jobs for " + project.getId() + " ===");
+      for (JobList.Jobs job : jobs) {
+        resp.getWriter().println("Job " + job.getId() + ":");
+        resp.getWriter().println(job.toPrettyString());
+        String jobId = job.getJobReference().getJobId();
+        Bigquery.Jobs.Get jobRequest = bigquery.jobs().get(project.getId(), jobId);
+        Job jobResponse = jobRequest.execute();
+        resp.getWriter().println("Full job description:");
+        resp.getWriter().println(jobResponse.toPrettyString());
+      }
 		}
 	}
 }
