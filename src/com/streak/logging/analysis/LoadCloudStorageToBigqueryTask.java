@@ -180,6 +180,7 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 			String[] schemaFieldStrParts = schemaFieldStr.split(":");
 			field.setName(schemaFieldStrParts[0]);
 			field.setType(schemaFieldStrParts[1]);
+                        field.setMode("NULLABLE");
 			schemaFields.add(field);
 		}
 		schema.setFields(schemaFields);
