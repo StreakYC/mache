@@ -16,6 +16,7 @@
 
 package com.streak.logging.analysis;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,6 +24,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.channels.Channels;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.NumberFormat;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,8 +44,11 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.files.AppEngineFile;
+import com.google.appengine.api.files.FileReadChannel;
 import com.google.appengine.api.files.FileService;
+import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
 import com.google.appengine.api.files.FinalizationException;
 import com.google.appengine.api.files.LockException;
@@ -87,7 +93,8 @@ public class AnalysisUtility {
 		return Long.parseLong(keyParts[keyParts.length - 1]);
 	}
 
-	public static void fetchCloudStorageUris(
+	
+	public static void fetchCloudStorageLogUris(
 			String bucketName,
 			String schemaHash,
 			long startMs,
@@ -97,6 +104,13 @@ public class AnalysisUtility {
 			boolean readSchemas) throws IOException {
 		String startKey = AnalysisUtility.createLogKey(schemaHash, startMs, startMs);
 		String endKey = AnalysisUtility.createLogKey(schemaHash, endMs, endMs);
+		fetchCloudStorageUris(bucketName, startKey, endKey, requestFactory,
+				urisToProcess, readSchemas);
+	}
+
+	public static void fetchCloudStorageUris(String bucketName,
+			String startKey, String endKey, HttpRequestFactory requestFactory,
+			List<String> urisToProcess, boolean readSchemas) throws IOException {
 		String bucketUri = "http://commondatastorage.googleapis.com/" + bucketName;
 		HttpRequest request = requestFactory.buildGetRequest(
 				new GenericUrl(bucketUri + "?marker=" + startKey));
@@ -213,5 +227,61 @@ public class AnalysisUtility {
 				fieldTypes.add(exporter.getFieldType(i).toLowerCase().intern());
 			}
 		}
+	}
+	
+	public static String formatCsvValue(Object fieldValue, String type) {
+		NumberFormat nf = createFixedPointFormat();
+		// These strings have been interned so == works for comparison
+		if ("string" == type) {
+			if (fieldValue instanceof Text) {
+				return AnalysisUtility.escapeAndQuoteField(((Text) fieldValue).getValue());
+			}
+			
+			return AnalysisUtility.escapeAndQuoteField("" + fieldValue);
+		}
+		if ("float" == type) {
+			return nf.format(fieldValue);
+		}
+		if ("integer" == type) {
+			if (fieldValue instanceof Date) {
+				return "" + ((Date) fieldValue).getTime();
+			}
+		}
+		
+		return "" + fieldValue;
+	}
+	
+	private static NumberFormat fixedPoint;
+
+	private static NumberFormat createFixedPointFormat() {
+		if (fixedPoint == null) {
+			// Avoid scientific notation output
+			fixedPoint = NumberFormat.getInstance();
+			fixedPoint.setGroupingUsed(false);
+			fixedPoint.setParseIntegerOnly(false);
+			fixedPoint.setMinimumFractionDigits(1);
+			fixedPoint.setMaximumFractionDigits(30);
+			fixedPoint.setMinimumIntegerDigits(1);
+			fixedPoint.setMaximumIntegerDigits(30);
+		}
+		return fixedPoint;
+	}
+	
+
+	public static String loadSchemaStr(String schemaFileName)
+			throws FileNotFoundException, LockException, IOException {
+		FileService fileService = FileServiceFactory.getFileService();
+		AppEngineFile schemaFile = new AppEngineFile(schemaFileName);
+		FileReadChannel readChannel = fileService.openReadChannel(schemaFile, false);
+		BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, "UTF8"));
+		String schemaLine;
+		try {
+			schemaLine = reader.readLine().trim();
+		} catch (NullPointerException npe) {
+			throw new IOException("Encountered NPE reading " + schemaFileName);
+		}
+		reader.close();
+		readChannel.close();
+		return schemaLine;
 	}
 }

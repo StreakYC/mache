@@ -118,6 +118,15 @@ $ git clone {insert repo url}
   <url-pattern>/logging/bigqueryStatus</url-pattern>
 </servlet-mapping>
 
+<servlet>
+  <servlet-name>DatastoreExportServlet</servlet-name>
+  <servlet-class>com.streak.datastore.analysis.DatastoreExportServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+  <servlet-name>DatastoreExportServlet</servlet-name>
+  <url-pattern>/logging/datastoreExport</url-pattern>
+</servlet-mapping>
+
 <security-constraint>
   <web-resource-collection>
     <url-pattern>/logging/*</url-pattern>

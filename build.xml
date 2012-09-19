@@ -14,6 +14,7 @@
     <javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true" debuglevel="lines,vars,source" source="1.5" target="1.5">
       <classpath>
         <fileset dir=".">
+          <include name="*.jar" />
           <include name="bigquery_libs/**/*.jar" />
         </fileset>
         <fileset dir="${gae_sdk}">

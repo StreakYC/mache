@@ -19,5 +19,7 @@
 	<classpathentry kind="lib" path="bigquery_libs/protobuf-java-2.2.0.jar"/>
 	<classpathentry kind="lib" path="bigquery_libs/transaction-api-1.1.jar"/>
 	<classpathentry kind="lib" path="bigquery_libs/xpp3-1.1.4c.jar"/>
+	<classpathentry kind="lib" path="appengine-mapper.jar"/>
+	<classpathentry kind="lib" path="hadoop-0.20.2-core.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -126,7 +126,7 @@ public class LogExportCronTask extends HttpServlet {
 		HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
 		
 		List<String> urisToProcess = new ArrayList<String>();
-		AnalysisUtility.fetchCloudStorageUris(
+		AnalysisUtility.fetchCloudStorageLogUris(
 				bucketName, schemaHash, startMs, endMs, requestFactory, urisToProcess, true);
 		long lastEndMsSeen = startMs - startMs % msPerFile;
 		for (String uri : urisToProcess) {

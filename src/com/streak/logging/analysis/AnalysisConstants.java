@@ -35,6 +35,10 @@ public class AnalysisConstants {
 	public static final String BIGQUERY_FIELD_EXPORTER_SET_PARAM = "bigqueryFieldExporterSet";
 	public static final String QUEUE_NAME_PARAM = "queueName";
 	public static final String LOG_LEVEL_PARAM = "logLevel";
+	public static final String EXPORT_NAME_PARAM = "exportName";
+	public static final String KINDS_TO_EXCLUDE_PARAM = "kindsToExclude";
+	public static final String CLOUD_STORAGE_PATH_BASE_PARAM = "cloudStoragePathBase";
+	public static final String SHARD_COUNT_PARAM = "shardCount";
 
 	// Amount to delay each load job to avoid getting rate limited by BigQuery
 	public static final long LOAD_DELAY_MS = 40000;
