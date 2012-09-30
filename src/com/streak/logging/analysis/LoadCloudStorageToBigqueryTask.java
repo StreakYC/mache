@@ -16,10 +16,7 @@
 
 package com.streak.logging.analysis;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,11 +42,6 @@ import com.google.api.services.bigquery.model.TableSchema;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-import com.google.appengine.api.files.AppEngineFile;
-import com.google.appengine.api.files.FileReadChannel;
-import com.google.appengine.api.files.FileService;
-import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.api.files.LockException;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
@@ -167,7 +159,7 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 	}
 	
 	private void loadSchema(String fileUri, TableSchema schema) throws IOException  {
-		// Hack(frew): Move to AnalysisUtility
+		// TODO(frew): Move to AnalysisUtility
 		String schemaFileUri = fileUri + ".schema";
 		String schemaFileName = "/gs/" + schemaFileUri.substring(schemaFileUri.indexOf("//") + 2);
 		BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();

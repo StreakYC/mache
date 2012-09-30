@@ -27,7 +27,6 @@ import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.appengine.api.taskqueue.TaskOptions.Builder;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.tools.mapreduce.AppEngineJobContext;
 import com.google.appengine.tools.mapreduce.ConfigurationXmlUtil;
@@ -42,8 +41,7 @@ public class DatastoreExportServlet extends HttpServlet {
 				|| datastoreStatsType.equals("TEXT") 
 				|| datastoreStatsType.equals("REFERENCE")
 				|| datastoreStatsType.equals("KEY")
-				|| datastoreStatsType.equals("BLOBKEY")
-				|| datastoreStatsType.equals("BLOB")) {
+				|| datastoreStatsType.equals("BLOBKEY")) {
 			return "string";
 		}
 		if (datastoreStatsType.equals("INT64")
@@ -58,7 +56,7 @@ public class DatastoreExportServlet extends HttpServlet {
 				|| datastoreStatsType.equals("FLOAT")) {
 			return "float";
 		}
-		if (datastoreStatsType.equals("NULL")) {
+		if (datastoreStatsType.equals("NULL") || datastoreStatsType.equals("BLOB")) {
 			return null;
 		}
 		throw new RuntimeException("Couldn't map datastore stats type " + datastoreStatsType + " to BigQuery type");
@@ -161,7 +159,7 @@ public class DatastoreExportServlet extends HttpServlet {
 	}
 	
 	protected String getDefaultExportName() {
-		return "export";
+		return "dsExport";
 	}
 	
 	protected int getDefaultShardCount() {

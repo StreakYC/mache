@@ -18,7 +18,7 @@ import com.streak.logging.analysis.FancyFileWriter;
 
 public class DatastoreBigqueryExportMapper extends
 		AppEngineMapper<Key, Entity, NullWritable, NullWritable> {
-	public static final String WRITABLE_MAPPING = "WritableMapping";
+	public static final String WRITABLE_MAPPING = "_MACHE_WritableMapping_";
 	public static final String OUTPUT_KEY = "cloudstorage.output.path";
 	public static final String OUTPUT_BUCKET = "cloudstorage.output.bucket";
 	public static final String SCHEMA_PATH = "cloudstorage.schema.path";
@@ -98,10 +98,7 @@ public class DatastoreBigqueryExportMapper extends
 	}
 
 	@Override
-	public void map(
-			Key key, Entity entity, 
-			Mapper<Key,Entity,NullWritable, NullWritable>.Context context)
-			throws IOException, InterruptedException {
+	public void map(Key key, Entity entity, Mapper<Key,Entity,NullWritable, NullWritable>.Context context) throws IOException, InterruptedException {
 		for (int i = 0; i < names.length; i++) {
 			writer.append(AnalysisUtility.formatCsvValue(entity.getProperty(names[i]), types[i]));
 			if (i < names.length - 1) {
