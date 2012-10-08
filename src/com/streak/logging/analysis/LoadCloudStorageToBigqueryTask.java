@@ -136,6 +136,7 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 		JobConfigurationLoad loadConfig = new JobConfigurationLoad();
 		
 		loadConfig.setSourceUris(urisToProcess);
+		loadConfig.set("allowQuotedNewlines", true);
 		
 		TableSchema schema = new TableSchema();
 		// TODO(frew): Support for multiple schemas?

@@ -25,6 +25,7 @@ import java.nio.channels.Channels;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -53,6 +54,7 @@ import com.google.appengine.api.files.FileWriteChannel;
 import com.google.appengine.api.files.FinalizationException;
 import com.google.appengine.api.files.LockException;
 import com.google.appengine.api.files.GSFileOptions.GSFileOptionsBuilder;
+import com.streak.datastore.analysis.builtin.BuiltinDatastoreExportConfiguration;
 
 public class AnalysisUtility {
 	// Only static methods
@@ -283,5 +285,45 @@ public class AnalysisUtility {
 		reader.close();
 		readChannel.close();
 		return schemaLine;
+	}
+
+	public static String failureJson(String message) {
+		return "{\"success\":false, \"message\":\"" + message + "\"}";
+	}
+	
+	public static String successJson(String message) {
+		return "{\"success\":true, \"message\":\"" + message + "\"}";
+	}
+	
+	public static BuiltinDatastoreExportConfiguration instantiateExportConfig(String builtinDatastoreExportConfig) {
+		Class exportConfigClass;
+		try {
+			exportConfigClass = Class.forName(builtinDatastoreExportConfig);
+		} catch (ClassNotFoundException e) {
+			throw new InvalidTaskParameterException("Got invalid BuiltinDatastoreExportConfig class name: " + builtinDatastoreExportConfig);
+		}
+		if (!BuiltinDatastoreExportConfiguration.class.isAssignableFrom(exportConfigClass)) {
+			throw new InvalidTaskParameterException("Got bigqueryFieldExporterSet parameter " 
+					+ builtinDatastoreExportConfig + " that doesn't implement BigqueryFieldExporterSet");
+		}
+		BuiltinDatastoreExportConfiguration exportConfig;
+		try {
+			exportConfig = (BuiltinDatastoreExportConfiguration) exportConfigClass.newInstance();
+		} catch (InstantiationException e) {
+			throw new InvalidTaskParameterException("Couldn't instantiate BigqueryFieldExporter set class " + builtinDatastoreExportConfig);
+		} catch (IllegalAccessException e) {
+			throw new InvalidTaskParameterException("BigqueryFieldExporter class " + builtinDatastoreExportConfig + " has no visible default constructor");
+		}
+		return exportConfig;
+	}
+	
+	public static String getPostBackupName(long timestamp) {
+		SimpleDateFormat sd = new SimpleDateFormat("yy_MM_dd");
+		return getPreBackupName(timestamp) + sd.format(new Date(timestamp));
+	}
+
+
+	public static String getPreBackupName(long timestamp) {
+		return AnalysisConstants.DEFAULT_DATASTORE_BACKUP_NAME + timestamp + "_";
 	}
 }
