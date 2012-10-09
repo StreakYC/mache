@@ -130,8 +130,17 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 			if (!exporterConfig.appendTimestampToDatatables()) {
 				// we aren't appending the timestamps so delete the old tables if they exist
 				for (String kind : exporterConfig.getEntityKindsToExport()) {
-					Table t = bigquery.tables().get(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
-					if (t != null) {
+					boolean found = true;
+					Table t;
+					try {
+						t = bigquery.tables().get(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
+					}
+					catch (IOException e) {
+						// table not found so don't need to do anything
+						found = false;
+					}
+						
+					if (found) {
 						bigquery.tables().delete(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
 					}
 				}
@@ -144,7 +153,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 				JobConfigurationLoad loadConfig = new JobConfigurationLoad();	
 				
 				
-				String backupName = AnalysisUtility.getPostBackupName(timestamp);
+				String backupName = AnalysisUtility.getCloudStorageBackupName(timestamp);
 				String uri = "gs://" + exporterConfig.getBucketName() + "/" + backupName + "." + kind + ".backup_info";
 				
 				loadConfig.setSourceUris(Arrays.asList(uri));
