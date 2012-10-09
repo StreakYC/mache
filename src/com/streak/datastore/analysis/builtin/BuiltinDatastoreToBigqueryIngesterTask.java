@@ -17,15 +17,27 @@
 package com.streak.datastore.analysis.builtin;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
+import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.services.bigquery.Bigquery;
+import com.google.api.services.bigquery.Bigquery.Jobs.Insert;
+import com.google.api.services.bigquery.Bigquery.Tables.Get;
+import com.google.api.services.bigquery.model.Job;
+import com.google.api.services.bigquery.model.JobConfiguration;
+import com.google.api.services.bigquery.model.JobConfigurationLoad;
+import com.google.api.services.bigquery.model.JobReference;
+import com.google.api.services.bigquery.model.Table;
+import com.google.api.services.bigquery.model.TableReference;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -98,59 +110,69 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		}
 		else {
 			resp.getWriter().println(AnalysisUtility.successJson("backup complete, starting bigquery ingestion"));
-//			AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
-//			HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
-//			
-//			Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
-//					.setHttpRequestInitializer(credential)
-//					.setApplicationName("Streak Logs")
-//					.build();
-//			
-//			
-//			String datatableSuffix = Long.toString(timestamp);
-//			if (replaceExistingTables) {
-//				// delete the dataset
-//				bigquery.datasets().delete(bigqueryDatasetId, bigqueryProjectId);
-//				datatableSuffix = "";
-//			}
-//			
-//			
-//			Job job = new Job();
-//			JobConfiguration config = new JobConfiguration();
-//			JobConfigurationLoad loadConfig = new JobConfigurationLoad();
-//			
-//			loadConfig.setSourceUris(urisToProcess);
-//			loadConfig.set("sourceFormat", "DATASTORE_BACKUP");
-//			loadConfig.set("allowQuotedNewlines", true);
-//			
-//			TableSchema schema = new TableSchema();
-//			// TODO(frew): Support for multiple schemas?
-//			loadSchema(schemaBaseUri, schema);
-//			loadConfig.setSchema(schema);
-//			
-//			TableReference table = new TableReference();
-//			table.setProjectId(bigqueryProjectId);
-//			table.setDatasetId(bigqueryDatasetId);
-//			table.setTableId(bigqueryTableId);
-//			loadConfig.setDestinationTable(table);
-//			
-//			config.setLoad(loadConfig);
-//			job.setConfiguration(config);
-//			Insert insert = bigquery.jobs().insert(bigqueryProjectId, job);
-//			
-//			// TODO(frew): Not sure this is necessary, but monkey-see'ing the example code
-//			insert.setProjectId(bigqueryProjectId);
-//			JobReference ref = insert.execute().getJobReference();
-		}
-		
+			AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
+			HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
+			
+			Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
+					.setHttpRequestInitializer(credential)
+					.setApplicationName("Streak Logs")
+					.build();
+			
+			
+			String datatableSuffix = "";
+			if (exporterConfig.appendTimestampToDatatables()) {
+				datatableSuffix = Long.toString(timestamp);
+			}
+			else {
+				datatableSuffix = "";
+			}
+			
+			if (!exporterConfig.appendTimestampToDatatables()) {
+				// we aren't appending the timestamps so delete the old tables if they exist
+				for (String kind : exporterConfig.getEntityKindsToExport()) {
+					Table t = bigquery.tables().get(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
+					if (t != null) {
+						bigquery.tables().delete(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
+					}
+				}
+			}
+			
+			// now create the ingestion
+			for (String kind : exporterConfig.getEntityKindsToExport()) {
+				Job job = new Job();
+				JobConfiguration config = new JobConfiguration();
+				JobConfigurationLoad loadConfig = new JobConfigurationLoad();	
+				
+				
+				String backupName = AnalysisUtility.getPostBackupName(timestamp);
+				String uri = "gs://" + exporterConfig.getBucketName() + "/" + backupName + "." + kind + ".backup_info";
+				
+				loadConfig.setSourceUris(Arrays.asList(uri));
+				loadConfig.set("sourceFormat", "DATASTORE_BACKUP");
+				loadConfig.set("allowQuotedNewlines", true);
+				
+				
+				TableReference table = new TableReference();
+				table.setProjectId(exporterConfig.getBigqueryProjectId());
+				table.setDatasetId(exporterConfig.getBigqueryDatasetId());
+				table.setTableId(kind + datatableSuffix);
+				loadConfig.setDestinationTable(table);
 
-		
-		
-		
+				config.setLoad(loadConfig);
+				job.setConfiguration(config);
+				Insert insert = bigquery.jobs().insert(exporterConfig.getBigqueryProjectId(), job);
+				
+				// TODO(frew): Not sure this is necessary, but monkey-see'ing the example code
+				insert.setProjectId(exporterConfig.getBigqueryProjectId());
+				JobReference ref = insert.execute().getJobReference();
+			}
+		}
 	}
 
 
 	private boolean isBackupComplete(String backupName) {
+		System.err.println("backupName: " + backupName);
+		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		
 		Query q = new Query("_AE_Backup_Information");
@@ -160,7 +182,9 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		PreparedQuery pq = datastore.prepare(q);
 		Entity result = pq.asSingleEntity();
 		
-		Object completion = result.getProperty("completion_time");
+		Object completion = result.getProperty("complete_time");
+		System.err.println("result: " + result);
+		System.err.println("complete_time: " + completion);
 		System.err.println("Backup complete: " + completion != null);
 		return completion != null;
 	}

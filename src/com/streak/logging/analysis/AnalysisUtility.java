@@ -318,7 +318,7 @@ public class AnalysisUtility {
 	}
 	
 	public static String getPostBackupName(long timestamp) {
-		SimpleDateFormat sd = new SimpleDateFormat("yy_MM_dd");
+		SimpleDateFormat sd = new SimpleDateFormat("yyyy_MM_dd");
 		return getPreBackupName(timestamp) + sd.format(new Date(timestamp));
 	}
 
