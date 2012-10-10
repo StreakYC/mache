@@ -104,7 +104,8 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		// Instantiate the export config 
 		BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateExportConfig(builtinDatastoreExportConfig);
 		
-		if (!isBackupComplete(AnalysisUtility.getPostBackupName(timestamp))) {
+		String keyOfCompletedBackup = checkAndGetCompletedBackup(AnalysisUtility.getPostBackupName(timestamp)); 
+		if (keyOfCompletedBackup == null) {
 			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in 1000 millis"));
 			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, 1000);
 		}
@@ -152,9 +153,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 				JobConfiguration config = new JobConfiguration();
 				JobConfigurationLoad loadConfig = new JobConfigurationLoad();	
 				
-				
-				String backupName = AnalysisUtility.getCloudStorageBackupName(timestamp);
-				String uri = "gs://" + exporterConfig.getBucketName() + "/" + backupName + "." + kind + ".backup_info";
+				String uri = "gs://" + exporterConfig.getBucketName() + "/" + keyOfCompletedBackup + "." + kind + ".backup_info";
 				
 				loadConfig.setSourceUris(Arrays.asList(uri));
 				loadConfig.set("sourceFormat", "DATASTORE_BACKUP");
@@ -179,7 +178,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 	}
 
 
-	private boolean isBackupComplete(String backupName) {
+	private String checkAndGetCompletedBackup(String backupName) {
 		System.err.println("backupName: " + backupName);
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -192,9 +191,15 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		Entity result = pq.asSingleEntity();
 		
 		Object completion = result.getProperty("complete_time");
+		String keyResult = null;
+		if (completion != null) {
+			keyResult = result.getKey().toString();
+		}
+		
 		System.err.println("result: " + result);
 		System.err.println("complete_time: " + completion);
 		System.err.println("Backup complete: " + completion != null);
-		return completion != null;
+		System.err.println("keyResult: " + keyResult);
+		return keyResult;
 	}
 }
