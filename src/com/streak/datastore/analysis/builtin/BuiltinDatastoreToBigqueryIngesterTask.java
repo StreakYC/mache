@@ -41,6 +41,7 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
@@ -193,7 +194,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		Object completion = result.getProperty("complete_time");
 		String keyResult = null;
 		if (completion != null) {
-			keyResult = result.getKey().toString();
+			keyResult = KeyFactory.keyToString(result.getKey());
 		}
 		
 		System.err.println("result: " + result);
