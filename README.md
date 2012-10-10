@@ -288,3 +288,4 @@ We've been working on this functionality or a little bit of time but recently Go
 3. Create a class which implements <code>BuiltinDatastoreExportConfiguration</code>
 4. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=</code><the fully qualified class name that you implemented>
 
+You can put this call in your cron.xml to have the bigquery tables updated periodically. Checkout the documentation in <code>BuiltinDatastoreExportConfiguration</code>.

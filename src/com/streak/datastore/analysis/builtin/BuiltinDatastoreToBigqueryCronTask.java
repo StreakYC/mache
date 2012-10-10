@@ -53,8 +53,9 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		String bucketName = exporterConfig.getBucketName();
 		String bigqueryDatasetId = exporterConfig.getBigqueryDatasetId();
 		String bigqueryProjectId = exporterConfig.getBigqueryProjectId();
+		boolean skipExport = exporterConfig.shouldSkipExportToBigquery();
 		
-		if (!AnalysisUtility.areParametersValid(bucketName, bigqueryDatasetId, bigqueryProjectId)) {
+		if (!AnalysisUtility.areParametersValid(bucketName, bigqueryProjectId) || (!skipExport && !AnalysisUtility.areParametersValid(bigqueryDatasetId))) {
 			resp.getWriter().write(AnalysisUtility.failureJson("Exporter config returned null for one of the params"));
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
