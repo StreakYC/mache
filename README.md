@@ -286,5 +286,5 @@ We've been working on this functionality or a little bit of time but recently Go
 1. Add the mache JAR to your project
 2. Add the URL's listed in the logging section to your web.xml
 3. Create a class which implements <code>BuiltinDatastoreExportConfiguration</code>
-4. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=<the fully qualified class name that you implemented></code>
+4. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=</code><the fully qualified class name that you implemented>
 
