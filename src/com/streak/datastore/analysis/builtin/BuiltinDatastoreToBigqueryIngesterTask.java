@@ -31,7 +31,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.Bigquery.Jobs.Insert;
-import com.google.api.services.bigquery.Bigquery.Tables.Get;
 import com.google.api.services.bigquery.model.Job;
 import com.google.api.services.bigquery.model.JobConfiguration;
 import com.google.api.services.bigquery.model.JobConfigurationLoad;
@@ -46,7 +45,6 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
-import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -54,6 +52,7 @@ import com.streak.logging.analysis.AnalysisConstants;
 import com.streak.logging.analysis.AnalysisUtility;
 
 public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
+	private static final int MILLIS_TO_ENQUEUE = 5000;
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 	
@@ -107,8 +106,8 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		
 		String keyOfCompletedBackup = checkAndGetCompletedBackup(AnalysisUtility.getPostBackupName(timestamp)); 
 		if (keyOfCompletedBackup == null) {
-			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in 1000 millis"));
-			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, 1000);
+			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in " + MILLIS_TO_ENQUEUE + " millis"));
+			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, MILLIS_TO_ENQUEUE);
 		}
 		else {
 			resp.getWriter().println(AnalysisUtility.successJson("backup complete, starting bigquery ingestion"));
