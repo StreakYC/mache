@@ -60,8 +60,6 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 			return;
 		}
 		
-		
-		
 		String queueName = exporterConfig.getQueueName();
 		Queue queue;
 		if (!AnalysisUtility.areParametersValid(queueName)) {
@@ -84,11 +82,8 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		if (!exporterConfig.shouldSkipExportToBigquery()) {
 			BuiltinDatastoreToBigqueryIngesterTask.enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp);
 		}
-		
-		
+				
 		resp.getWriter().println(AnalysisUtility.successJson("successfully kicked off backup job: " + backupName + ", export to bigquery will begin once backup is complete."));
-		
-		
 	}
 	
 	private TaskOptions createBackupTaskOptions(String backupName, List<String> kindsToExport, String bucketName) {

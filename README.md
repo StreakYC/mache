@@ -127,6 +127,24 @@ $ git clone {insert repo url}
   <url-pattern>/logging/datastoreExport</url-pattern>
 </servlet-mapping>
 
+<servlet>
+  <servlet-name>BuiltinDatastoreToBigqueryCronTask</servlet-name>
+  <servlet-class>com.streak.datastore.analysis.builtin.BuiltinDatastoreToBigqueryCronTask</servlet-class>
+</servlet>
+<servlet-mapping>
+  <servlet-name>BuiltinDatastoreToBigqueryCronTask</servlet-name>
+  <url-pattern>/bqlogging/builtinDatastoreExport</url-pattern>
+</servlet-mapping>
+
+<servlet>
+  <servlet-name>BuiltinDatastoreToBigqueryIngestorTask</servlet-name>
+  <servlet-class>com.streak.datastore.analysis.builtin.BuiltinDatastoreToBigqueryIngesterTask</servlet-class>
+</servlet>
+<servlet-mapping>
+  <servlet-name>BuiltinDatastoreToBigqueryIngestorTask</servlet-name>
+  <url-pattern>/bqlogging/builtinDatastoreToBigqueryIngestorTask</url-pattern>
+</servlet-mapping>
+
 <security-constraint>
   <web-resource-collection>
     <url-pattern>/logging/*</url-pattern>
@@ -260,3 +278,13 @@ The only currently supported change that will not lose data is changing
 The Eclipse project will automatically use your installed App Engine SDK.
 To build the jar, add your App Engine SDK directory to edit-to-build.properties,
 and rename it to build.properties. Run ant to build.
+
+# Exporting Datastore Entities to BigQuery
+We've been working on this functionality or a little bit of time but recently Google launched the ability for you to import datastore backups into BigQuery. The feature however is a manual process. Mache has built the ability for you to automatically kickoff backups of desired entity kinds and automatically start BigQuery ingestion jobs when the backup is complete. 
+
+## Getting Started With Datastore to BigQuery Exports
+1. Add the mache JAR to your project
+2. Add the URL's listed in the logging section to your web.xml
+3. Create a class which implements <code>BuiltinDatastoreExportConfiguration</code>
+4. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=<the fully qualified class name that you implemented></code>
+
