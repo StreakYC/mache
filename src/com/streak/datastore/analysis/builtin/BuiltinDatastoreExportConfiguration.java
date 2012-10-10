@@ -57,4 +57,9 @@ public interface BuiltinDatastoreExportConfiguration {
 	 */
 	public String getQueueName();
 	
+	/**
+	 * Return true if you want to just use mache for automatic backup creation to cloud storage and not exporting to bigquery. Normally this should be set to false. 
+	 * @return whether or not to export to bigquery
+	 */
+	public boolean shouldSkipExportToBigquery();
 }
