@@ -316,11 +316,6 @@ public class AnalysisUtility {
 		}
 		return exportConfig;
 	}
-	
-	public static String getPostBackupName(long timestamp) {
-		SimpleDateFormat sd = new SimpleDateFormat("yyyy_MM_dd");
-		return getPreBackupName(timestamp) + sd.format(new Date(timestamp));
-	}
 
 	public static String getPreBackupName(long timestamp) {
 		return AnalysisConstants.DEFAULT_DATASTORE_BACKUP_NAME + timestamp + "_";

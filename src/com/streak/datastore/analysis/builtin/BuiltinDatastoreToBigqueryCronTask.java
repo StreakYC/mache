@@ -76,9 +76,6 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		TaskOptions t = createBackupTaskOptions(backupName, exporterConfig.getEntityKindsToExport(), bucketName);				
 		queue.add(t);
 		
-		// for some reason the datastore admin code appends the date to the backup name even when creating programatically
-		backupName = AnalysisUtility.getPostBackupName(timestamp);
-		
 		// start another task to do the actual import into bigquery
 		if (!exporterConfig.shouldSkipExportToBigquery()) {
 			BuiltinDatastoreToBigqueryIngesterTask.enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp);
