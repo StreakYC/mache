@@ -62,4 +62,10 @@ public interface BuiltinDatastoreExportConfiguration {
 	 * @return whether or not to export to bigquery
 	 */
 	public boolean shouldSkipExportToBigquery();
+	
+	/**
+	 * This allows you to name the backups created in cloudstrage and the datastore admin console for future reference 
+	 * @return the name of the backup to be used in Google Cloud Storage, or null to use the default
+	 */
+	public String getBackupNamePrefix();
 }

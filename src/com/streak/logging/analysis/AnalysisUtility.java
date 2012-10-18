@@ -317,7 +317,10 @@ public class AnalysisUtility {
 		return exportConfig;
 	}
 
-	public static String getPreBackupName(long timestamp) {
-		return AnalysisConstants.DEFAULT_DATASTORE_BACKUP_NAME + timestamp + "_";
+	public static String getPreBackupName(long timestamp, String backupNamePrefix) {
+		if (!AnalysisUtility.areParametersValid(backupNamePrefix)) {
+			backupNamePrefix = AnalysisConstants.DEFAULT_DATASTORE_BACKUP_NAME;
+		}
+		return backupNamePrefix + timestamp + "_";
 	}
 }

@@ -70,7 +70,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 			queue = QueueFactory.getQueue(queueName);
 		}
 		
-		String backupName = AnalysisUtility.getPreBackupName(timestamp);
+		String backupName = AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix());
 		
 		// start the backup task
 		TaskOptions t = createBackupTaskOptions(backupName, exporterConfig.getEntityKindsToExport(), bucketName);				

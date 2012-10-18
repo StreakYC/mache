@@ -106,7 +106,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		// Instantiate the export config 
 		BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateExportConfig(builtinDatastoreExportConfig);
 		
-		String keyOfCompletedBackup = checkAndGetCompletedBackup(AnalysisUtility.getPreBackupName(timestamp)); 
+		String keyOfCompletedBackup = checkAndGetCompletedBackup(AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix())); 
 		if (keyOfCompletedBackup == null) {
 			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in " + MILLIS_TO_ENQUEUE + " millis"));
 			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, MILLIS_TO_ENQUEUE);
