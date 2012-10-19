@@ -73,7 +73,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		String backupName = AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix());
 		
 		// start the backup task
-		TaskOptions t = createBackupTaskOptions(backupName, exporterConfig.getEntityKindsToExport(), bucketName);				
+		TaskOptions t = createBackupTaskOptions(backupName, exporterConfig.getEntityKindsToExport(), bucketName, queue.getQueueName());				
 		queue.add(t);
 		
 		// start another task to do the actual import into bigquery
@@ -84,7 +84,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		resp.getWriter().println(AnalysisUtility.successJson("successfully kicked off backup job: " + backupName + ", export to bigquery will begin once backup is complete."));
 	}
 	
-	private TaskOptions createBackupTaskOptions(String backupName, List<String> kindsToExport, String bucketName) {
+	private TaskOptions createBackupTaskOptions(String backupName, List<String> kindsToExport, String bucketName, String queueName) {
 		TaskOptions t = TaskOptions.Builder.withUrl("/_ah/datastore_admin/backup.create");
 		t.param("name", backupName);
 		for (String kind : kindsToExport) {
@@ -92,6 +92,8 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		}
 		t.param("filesystem", "gs");
 		t.param("gs_bucket_name", bucketName);
+		
+		t.param("queue", queueName);
 		
 		t.method(Method.GET);
 		t.header("Host", BackendServiceFactory.getBackendService().getBackendAddress(AH_BUILTIN_PYTHON_BUNDLE));
