@@ -157,6 +157,12 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 		insert.setProjectId(bigqueryProjectId);
 		JobReference ref = insert.execute().getJobReference();
 		resp.getWriter().println("Successfully started job " + ref);
+		
+		String shouldDelete = req.getParameter(AnalysisConstants.DELETE_FROM_CLOUD_STORAGE_PARAM);
+		if (AnalysisUtility.areParametersValid(shouldDelete)) {
+			String jobId = ref.getJobId();
+			
+		}
 	}
 	
 	private void loadSchema(String fileUri, TableSchema schema) throws IOException  {

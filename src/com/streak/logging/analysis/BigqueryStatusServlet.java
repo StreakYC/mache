@@ -17,7 +17,6 @@
 package com.streak.logging.analysis;
 
 import java.io.IOException;
-
 import java.util.List;
 
 import javax.servlet.http.HttpServlet;
@@ -33,8 +32,6 @@ import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Job;
 import com.google.api.services.bigquery.model.JobList;
-import com.google.api.services.bigquery.model.JobConfiguration;
-import com.google.api.services.bigquery.model.JobConfigurationLoad;
 import com.google.api.services.bigquery.model.ProjectList;
 import com.google.api.services.bigquery.model.ProjectList.Projects;
 

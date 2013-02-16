@@ -79,10 +79,12 @@ public class LogExportCronTask extends HttpServlet {
 			logLevel = getDefaultLogLevel();
 		}
 		
+		String deleteFromCloudStorage = req.getParameter(AnalysisConstants.DELETE_FROM_CLOUD_STORAGE_PARAM);
+		
 		// Verify that log level is one of the enum values or ALL
-    if (!"ALL".equals(logLevel)) {
-		  LogLevel.valueOf(logLevel);
-    }
+	    if (!"ALL".equals(logLevel)) {
+			  LogLevel.valueOf(logLevel);
+	    }
 		
 		String bucketName = req.getParameter(AnalysisConstants.BUCKET_NAME_PARAM);
 		if (!AnalysisUtility.areParametersValid(bucketName)) {
@@ -157,6 +159,11 @@ public class LogExportCronTask extends HttpServlet {
 				.param(AnalysisConstants.QUEUE_NAME_PARAM, queueName)
 				.param(AnalysisConstants.BIGQUERY_TABLE_ID_PARAM, tableName)
 				.param(AnalysisConstants.LOG_LEVEL_PARAM, logLevel);
+			
+			if (AnalysisUtility.areParametersValid(deleteFromCloudStorage)) {
+				taskOptions.param(AnalysisConstants.DELETE_FROM_CLOUD_STORAGE_PARAM, deleteFromCloudStorage);
+			}
+				
 			taskQueue.add(taskOptions);
 			taskCount += 1;
 		}
