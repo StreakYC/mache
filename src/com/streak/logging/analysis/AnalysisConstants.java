@@ -55,5 +55,7 @@ public class AnalysisConstants {
 	// Memcache namespace to use for BigQuery rate limiting
 	public static final String MEMCACHE_NAMESPACE = "mache";
 
-	public static final String BIGQUERY_JOB_ID_PARAM = "jobId";	
+	public static final String BIGQUERY_JOB_ID_PARAM = "jobId";
+
+	public static final String RETRY_COUNT_PARAM = "retryCount";	
 }

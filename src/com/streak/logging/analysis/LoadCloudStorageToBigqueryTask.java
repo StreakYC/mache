@@ -165,6 +165,7 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 							AnalysisUtility.getRequestBaseName(req) + "/deleteCompletedCloudStorageFilesTask")
 						   .method(Method.GET)
 						   .param(AnalysisConstants.BIGQUERY_JOB_ID_PARAM, ref.getJobId())
+						   .param(AnalysisConstants.QUEUE_NAME_PARAM, queueName)
 						   .param(AnalysisConstants.BIGQUERY_PROJECT_ID_PARAM, bigqueryProjectId));
 		}
 	}
