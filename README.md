@@ -110,6 +110,15 @@ $ git clone {insert repo url}
 </servlet-mapping>
 
 <servlet>
+  <servlet-name>DeleteCompletedCloudStorageFilesTask</servlet-name>
+  <servlet-class>com.streak.logging.analysis.DeleteCompletedCloudStorageFilesTask</servlet-class>
+</servlet>
+<servlet-mapping>
+  <servlet-name>DeleteCompletedCloudStorageFilesTask</servlet-name>
+  <url-pattern>/logging/deleteCompletedCloudStorageFilesTask</url-pattern>
+</servlet-mapping>
+
+<servlet>
   <servlet-name>BigqueryStatusServlet</servlet-name>
   <servlet-class>com.streak.logging.analysis.BigqueryStatusServlet</servlet-class>
 </servlet>

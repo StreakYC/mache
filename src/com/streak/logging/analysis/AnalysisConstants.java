@@ -53,5 +53,7 @@ public class AnalysisConstants {
 	public static final String LAST_BIGQUERY_JOB_TIME = "lastBigqueryJobTime";
 
 	// Memcache namespace to use for BigQuery rate limiting
-	public static final String MEMCACHE_NAMESPACE = "mache";	
+	public static final String MEMCACHE_NAMESPACE = "mache";
+
+	public static final String BIGQUERY_JOB_ID_PARAM = "jobId";	
 }

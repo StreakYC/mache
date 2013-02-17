@@ -56,6 +56,11 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/plain");
 		
+		String queueName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.QUEUE_NAME_PARAM);
+		String bigqueryProjectId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_PROJECT_ID_PARAM);	
+		String bigqueryDatasetId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_DATASET_ID_PARAM);
+		String bigqueryTableId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_TABLE_ID_PARAM);
+		
 		MemcacheService memcache = MemcacheServiceFactory.getMemcacheService(AnalysisConstants.MEMCACHE_NAMESPACE); 
 		Long nextBigQueryJobTime = 
 				(Long) memcache.increment(
@@ -70,9 +75,7 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 			nextBigQueryJobTime = currentTime + AnalysisConstants.LOAD_DELAY_MS;
 		}
 		if (currentTime < nextBigQueryJobTime) {
-			memcache.increment(AnalysisConstants.LAST_BIGQUERY_JOB_TIME, -AnalysisConstants.LOAD_DELAY_MS);
-			
-			String queueName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.QUEUE_NAME_PARAM);
+			memcache.increment(AnalysisConstants.LAST_BIGQUERY_JOB_TIME, -AnalysisConstants.LOAD_DELAY_MS);			
 			Queue taskQueue = QueueFactory.getQueue(queueName);
 			taskQueue.add(
 					Builder.withUrl(
@@ -113,10 +116,6 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 			schemaBaseUri = "gs://" + bucketName + "/" + cloudStoragePathBase;
 		}
 		resp.getWriter().println("Got " + urisToProcess.size() + " uris to process");
-		
-		String bigqueryProjectId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_PROJECT_ID_PARAM);	
-		String bigqueryDatasetId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_DATASET_ID_PARAM);
-		String bigqueryTableId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_TABLE_ID_PARAM);
 		
 		if (urisToProcess.isEmpty()) {
 			return;
@@ -160,8 +159,13 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 		
 		String shouldDelete = req.getParameter(AnalysisConstants.DELETE_FROM_CLOUD_STORAGE_PARAM);
 		if (AnalysisUtility.areParametersValid(shouldDelete)) {
-			String jobId = ref.getJobId();
-			
+			Queue taskQueue = QueueFactory.getQueue(queueName);
+			taskQueue.add(
+					Builder.withUrl(
+							AnalysisUtility.getRequestBaseName(req) + "/deleteCompletedCloudStorageFilesTask")
+						   .method(Method.GET)
+						   .param(AnalysisConstants.BIGQUERY_JOB_ID_PARAM, ref.getJobId())
+						   .param(AnalysisConstants.BIGQUERY_PROJECT_ID_PARAM, bigqueryProjectId));
 		}
 	}
 	
