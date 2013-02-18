@@ -47,7 +47,6 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 
 		String bucketName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BUCKET_NAME_PARAM);
 		String queueName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.QUEUE_NAME_PARAM);
-		String deleteFromCloudStorageStr = req.getParameter(AnalysisConstants.DELETE_FROM_CLOUD_STORAGE_PARAM);
 		
 		String logLevelStr = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.LOG_LEVEL_PARAM);
 		LogLevel logLevel = null;
@@ -67,10 +66,6 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		Queue taskQueue = QueueFactory.getQueue(queueName);
 		TaskOptions to = Builder.withUrl(AnalysisUtility.getRequestBaseName(req) + "/loadCloudStorageToBigquery?" + req.getQueryString())
 				.method(Method.GET);
-		
-		if (AnalysisUtility.areParametersValid(deleteFromCloudStorageStr)) {
-			to.param(AnalysisConstants.DELETE_FROM_CLOUD_STORAGE_PARAM, deleteFromCloudStorageStr);
-		}
 		
 		taskQueue.add(to);
 				
