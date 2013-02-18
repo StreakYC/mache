@@ -16,35 +16,22 @@
 
 package com.streak.logging.analysis;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.channels.Channels;
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.api.files.AppEngineFile;
-import com.google.appengine.api.files.FileService;
-import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.api.files.FileWriteChannel;
-import com.google.appengine.api.files.FinalizationException;
-import com.google.appengine.api.files.GSFileOptions.GSFileOptionsBuilder;
-import com.google.appengine.api.files.LockException;
 import com.google.appengine.api.log.LogQuery;
 import com.google.appengine.api.log.LogService;
+import com.google.appengine.api.log.LogService.LogLevel;
 import com.google.appengine.api.log.LogServiceFactory;
 import com.google.appengine.api.log.RequestLogs;
-import com.google.appengine.api.log.LogService.LogLevel;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Builder;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
@@ -60,6 +47,7 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 
 		String bucketName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BUCKET_NAME_PARAM);
 		String queueName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.QUEUE_NAME_PARAM);
+		
 		String logLevelStr = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.LOG_LEVEL_PARAM);
 		LogLevel logLevel = null;
 		if (!"ALL".equals(logLevelStr)) {
@@ -76,11 +64,11 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 
 		String respStr = generateExportables(startMs, endMs, bucketName, schemaHash, exporterSet, fieldNames, fieldTypes, logLevel);
 		Queue taskQueue = QueueFactory.getQueue(queueName);
-		taskQueue.add(
-				Builder.withUrl(
-						AnalysisUtility.getRequestBaseName(req) + 
-						"/loadCloudStorageToBigquery?" + req.getQueryString())
-						.method(Method.GET));
+		TaskOptions to = Builder.withUrl(AnalysisUtility.getRequestBaseName(req) + "/loadCloudStorageToBigquery?" + req.getQueryString())
+				.method(Method.GET);
+		
+		taskQueue.add(to);
+				
 		resp.getWriter().println(respStr);
 	}
 

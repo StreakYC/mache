@@ -44,6 +44,7 @@ public class AnalysisConstants {
 	public static final String REPLACE_EXISTING_TABLES_PARAM = "replaceExistingTables";
 	public static final String BACKUP_NAME_PARAM = "backupName";
 	public static final String TIMESTAMP_PARAM = "timestamp";
+	public static final String DELETE_FROM_CLOUD_STORAGE_PARAM = "deleteFromCloudStorageParam";
 	
 	// Amount to delay each load job to avoid getting rate limited by BigQuery
 	public static final long LOAD_DELAY_MS = 40000;
@@ -52,5 +53,9 @@ public class AnalysisConstants {
 	public static final String LAST_BIGQUERY_JOB_TIME = "lastBigqueryJobTime";
 
 	// Memcache namespace to use for BigQuery rate limiting
-	public static final String MEMCACHE_NAMESPACE = "mache";	
+	public static final String MEMCACHE_NAMESPACE = "mache";
+
+	public static final String BIGQUERY_JOB_ID_PARAM = "jobId";
+
+	public static final String RETRY_COUNT_PARAM = "retryCount";	
 }
