@@ -47,8 +47,10 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Builder;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.streak.logging.analysis.AnalysisConstants;
 import com.streak.logging.analysis.AnalysisUtility;
@@ -175,6 +177,16 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 				// TODO(frew): Not sure this is necessary, but monkey-see'ing the example code
 				insert.setProjectId(exporterConfig.getBigqueryProjectId());
 				JobReference ref = insert.execute().getJobReference();
+				
+				Queue taskQueue = QueueFactory.getQueue(exporterConfig.getQueueName());
+				taskQueue.add(
+						Builder.withUrl(
+								AnalysisUtility.getRequestBaseName(req) + "/deleteCompletedCloudStorageFilesTask")
+							   .method(Method.GET)
+							   .param(AnalysisConstants.BIGQUERY_JOB_ID_PARAM, ref.getJobId())
+							   .param(AnalysisConstants.QUEUE_NAME_PARAM, exporterConfig.getQueueName())
+							   .param(AnalysisConstants.BIGQUERY_PROJECT_ID_PARAM, exporterConfig.getBigqueryProjectId()));
+				
 			}
 		}
 	}
