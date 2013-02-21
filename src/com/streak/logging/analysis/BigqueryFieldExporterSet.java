@@ -23,9 +23,9 @@ import com.google.appengine.api.log.RequestLogs;
 /**
  * BigqueryFieldExporterSet holds a List of BigqueryFieldExporters.
  * 
- * Its primary purpose is to allow for specification of a set of
- * exporters to LogExportCronTask. Implementations must have a functional
- * default constructor.
+ * Its primary purpose is to allow for specification of a set of exporters to
+ * LogExportCronTask. Implementations must have a functional default
+ * constructor.
  */
 public interface BigqueryFieldExporterSet {
 	/**
@@ -36,11 +36,21 @@ public interface BigqueryFieldExporterSet {
 	public List<BigqueryFieldExporter> getExporters();
 
 	/**
-	 * Let custom exporters to filter logs 
+	 * Let custom exporters to filter logs
 	 * 
 	 * @param log
 	 * @return true if given log request should be skipped
 	 */
 	public boolean skipLog(RequestLogs log);
+
+	/**
+	 * This method allows you to customize which application versions logs you
+	 * want exported. The logs API requires us to specify a list of application
+	 * versions. This corresponds to the "main" version.
+	 * 
+	 * @return a list of "main" application versions or null if you want to just
+	 *         export logs for the application this task is currently running on
+	 */
+	public List<String> applicationVersionsToExport();
 
 }

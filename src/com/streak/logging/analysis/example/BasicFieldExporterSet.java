@@ -42,4 +42,10 @@ public class BasicFieldExporterSet implements BigqueryFieldExporterSet {
 	{
 		return false;
 	}
+
+	@Override
+	public List<String> applicationVersionsToExport() {
+		return null;
+	}
+	
 }
