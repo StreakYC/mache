@@ -17,7 +17,6 @@
 package com.streak.logging.analysis;
 
 import java.io.IOException;
-
 import java.util.List;
 
 import javax.servlet.http.HttpServlet;
@@ -33,8 +32,6 @@ import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Job;
 import com.google.api.services.bigquery.model.JobList;
-import com.google.api.services.bigquery.model.JobConfiguration;
-import com.google.api.services.bigquery.model.JobConfigurationLoad;
 import com.google.api.services.bigquery.model.ProjectList;
 import com.google.api.services.bigquery.model.ProjectList.Projects;
 
@@ -45,37 +42,28 @@ public class BigqueryStatusServlet extends HttpServlet {
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/plain");
-		AppIdentityCredential credential = new AppIdentityCredential(
-				AnalysisConstants.SCOPES);
-		HttpRequestFactory requestFactory = HTTP_TRANSPORT
-				.createRequestFactory(credential);
-		Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
-				.setHttpRequestInitializer(credential)
-				.setApplicationName("Streak Logs").build();
+		AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
+		HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
+		Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY).setHttpRequestInitializer(credential).setApplicationName("Streak Logs").build();
 
 		Bigquery.Projects.List projectRequest = bigquery.projects().list();
 		ProjectList projectResponse = projectRequest.execute();
-		resp.getWriter().println(
-				"Available Projects:" + projectResponse.toPrettyString());
+		resp.getWriter().println("Available Projects:" + projectResponse.toPrettyString());
 
 		if (projectResponse.getProjects() != null) {
 			for (Projects project : projectResponse.getProjects()) {
-				Bigquery.Jobs.List jobsRequest = bigquery.jobs().list(
-						project.getId());
+				Bigquery.Jobs.List jobsRequest = bigquery.jobs().list(project.getId());
 				JobList jobsResponse = jobsRequest.execute();
 				List<JobList.Jobs> jobs = jobsResponse.getJobs();
-				resp.getWriter().println(
-						"=== Recent jobs for " + project.getId() + " ===");
+				resp.getWriter().println("=== Recent jobs for " + project.getId() + " ===");
 				if (jobs != null) {
 					for (JobList.Jobs job : jobs) {
 						resp.getWriter().println("Job " + job.getId() + ":");
 						resp.getWriter().println(job.toPrettyString());
 						String jobId = job.getJobReference().getJobId();
-						Bigquery.Jobs.Get jobRequest = bigquery.jobs().get(
-								project.getId(), jobId);
+						Bigquery.Jobs.Get jobRequest = bigquery.jobs().get(project.getId(), jobId);
 						Job jobResponse = jobRequest.execute();
 						resp.getWriter().println("Full job description:");
 						resp.getWriter().println(jobResponse.toPrettyString());
