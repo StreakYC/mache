@@ -96,6 +96,11 @@ public class StoreLogsInCloudStorageTask extends HttpServlet {
 		if (logLevel != null) {
 			lq = lq.minLogLevel(logLevel);
 		}
+		
+		List<String> appVersions = exporterSet.applicationVersionsToExport();
+		if (appVersions != null) {
+			lq = lq.majorVersionIds(appVersions);
+		}
 
 		String fileKey = AnalysisUtility.createLogKey(schemaHash, startMs, endMs);
 		
