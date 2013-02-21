@@ -46,9 +46,9 @@ public interface BigqueryFieldExporterSet {
 	/**
 	 * This method allows you to customize which application versions logs you
 	 * want exported. The logs API requires us to specify a list of application
-	 * versions. This corresponds to the "main" version.
+	 * versions. This corresponds to the "major" version. See the logs api docs
 	 * 
-	 * @return a list of "main" application versions or null if you want to just
+	 * @return a list of "major" application versions or null if you want to just
 	 *         export logs for the application this task is currently running on
 	 */
 	public List<String> applicationVersionsToExport();
