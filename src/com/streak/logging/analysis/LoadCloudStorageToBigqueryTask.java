@@ -126,8 +126,7 @@ public class LoadCloudStorageToBigqueryTask extends HttpServlet {
 			resp.getWriter().println("URI: " + uri);
 		}
 		
-		Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
-				.setHttpRequestInitializer(credential)
+		Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
 				.setApplicationName("Streak Logs")
 				.build();
 		

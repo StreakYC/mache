@@ -116,8 +116,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 			AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
 			HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
 			
-			Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
-					.setHttpRequestInitializer(credential)
+			Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
 					.setApplicationName("Streak Logs")
 					.build();
 			

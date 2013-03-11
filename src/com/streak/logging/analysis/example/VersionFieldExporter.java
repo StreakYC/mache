@@ -16,9 +16,6 @@
 
 package com.streak.logging.analysis.example;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.appengine.api.log.RequestLogs;
 import com.streak.logging.analysis.BigqueryFieldExporter;
 
