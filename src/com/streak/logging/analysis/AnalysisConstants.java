@@ -58,4 +58,5 @@ public class AnalysisConstants {
 	public static final String BIGQUERY_JOB_ID_PARAM = "jobId";
 
 	public static final String RETRY_COUNT_PARAM = "retryCount";	
+	public static final String MINUTES_HISTORY_PARAM = "minutesHistory";	
 }
