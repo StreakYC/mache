@@ -284,9 +284,21 @@ The only currently supported change that will not lose data is changing
 *msPerFile* to a value that divides its previous value.
 
 # Building/Contributing
-The Eclipse project will automatically use your installed App Engine SDK.
-To build the jar, add your App Engine SDK directory to edit-to-build.properties,
-and rename it to build.properties. Run ant to build.
+The project build uses Maven, so you need a copy of Maven to build and test the project. Just run the following commands from your terminal:
+
+```
+mvn clean package
+```
+
+The jar will be built in the target/ directory.
+
+To use Eclipse project, you need to generate eclipse project files, using:
+
+```
+mvn eclipse:eclipse 
+```
+
+If you use the Eclipse m2e integration, just import as new Maven Project, and it should do the job.
 
 # Exporting Datastore Entities to BigQuery
 We've been working on this functionality or a little bit of time but recently Google launched the ability for you to import datastore backups into BigQuery. The feature however is a manual process. Mache has built the ability for you to automatically kickoff backups of desired entity kinds and automatically start BigQuery ingestion jobs when the backup is complete. 

@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,6 +64,8 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 	
 	private static final String BUILTIN_DATASTORE_TO_BIGQUERY_INGESTOR_TASK_PATH = "/builtinDatastoreToBigqueryIngestorTask";
+
+	private static final Logger LOG = Logger.getLogger(BuiltinDatastoreToBigqueryIngesterTask.class.getName());
 
 	public static void enqueueTask(String baseUrl, BuiltinDatastoreExportConfiguration exporterConfig, long timestamp) {
 		enqueueTask(baseUrl, exporterConfig, timestamp, 0);
@@ -110,16 +115,17 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		
 		String keyOfCompletedBackup = checkAndGetCompletedBackup(AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix())); 
 		if (keyOfCompletedBackup == null) {
+			LOG.fine("Rescheduling verification ...");
 			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in " + MILLIS_TO_ENQUEUE + " millis"));
 			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, MILLIS_TO_ENQUEUE);
 		}
 		else {
+			LOG.fine("Starting ingestion jobs ...");
 			resp.getWriter().println(AnalysisUtility.successJson("backup complete, starting bigquery ingestion"));
 			AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
 			HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
 			
-			Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
-					.setHttpRequestInitializer(credential)
+			Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
 					.setApplicationName("Streak Logs")
 					.build();
 			
@@ -141,6 +147,9 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 						t = bigquery.tables().get(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
 					}
 					catch (IOException e) {
+						// TODO: Validate response. Only shoud use IOException if error is 404
+						// Errors 403 (forbidden), for instance, will be caught here erroneously
+						LOG.log(Level.INFO, "Table not found", e);
 						// table not found so don't need to do anything
 						found = false;
 					}

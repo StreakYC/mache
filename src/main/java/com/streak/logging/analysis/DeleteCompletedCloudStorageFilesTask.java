@@ -36,8 +36,7 @@ public class DeleteCompletedCloudStorageFilesTask extends HttpServlet {
 		String jobId = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.BIGQUERY_JOB_ID_PARAM);
 		String queueName = AnalysisUtility.extractParameterOrThrow(req, AnalysisConstants.QUEUE_NAME_PARAM);
 
-		Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY)
-				.setHttpRequestInitializer(credential)
+		Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
 				.setApplicationName("Streak Logs")
 				.build();
 		
