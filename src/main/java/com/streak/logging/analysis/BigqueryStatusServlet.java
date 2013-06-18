@@ -46,7 +46,8 @@ public class BigqueryStatusServlet extends HttpServlet {
 		resp.setContentType("text/plain");
 		AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
 		HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
-		Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY).setHttpRequestInitializer(credential).setApplicationName("Streak Logs").build();
+		Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+			.setHttpRequestInitializer(credential).setApplicationName("Streak Logs").build();
 
 		Bigquery.Projects.List projectRequest = bigquery.projects().list();
 		ProjectList projectResponse = projectRequest.execute();
