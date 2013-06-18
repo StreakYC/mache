@@ -211,7 +211,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		// for some reason the datastore admin code appends the date to the backup name even when creating programatically, 
 		// so test for greater than or equal to and then take the first result
 		q.setFilter(new FilterPredicate("name", FilterOperator.GREATER_THAN_OR_EQUAL, backupName));
-		q.setFilter(new FilterPredicate("name", FilterOperator.LESS_THAN, backupName + Chacacter.MAX_VALUE));
+		q.setFilter(new FilterPredicate("name", FilterOperator.LESS_THAN, backupName + Character.MAX_VALUE));
 		
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
