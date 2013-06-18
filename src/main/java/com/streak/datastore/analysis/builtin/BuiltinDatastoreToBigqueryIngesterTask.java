@@ -201,7 +201,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 	}
 
 
-	private String checkAndGetCompletedBackup(String backupName) throws IOException {
+	String checkAndGetCompletedBackup(String backupName) throws IOException {
 		System.err.println("backupName: " + backupName);
 		
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -210,8 +210,11 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		
 		// for some reason the datastore admin code appends the date to the backup name even when creating programatically, 
 		// so test for greater than or equal to and then take the first result
-		q.setFilter(new FilterPredicate("name", FilterOperator.GREATER_THAN_OR_EQUAL, backupName));
-		q.setFilter(new FilterPredicate("name", FilterOperator.LESS_THAN, backupName + Character.MAX_VALUE));
+		Query.Filter greatherThanOrEqual = new FilterPredicate("name",
+			FilterOperator.GREATER_THAN_OR_EQUAL, backupName);
+		Query.Filter lessThan = new FilterPredicate("name", FilterOperator.LESS_THAN,
+		backupName + Character.MAX_VALUE);
+		q.setFilter(Query.CompositeFilterOperator.and(greatherThanOrEqual, lessThan));
 		
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
