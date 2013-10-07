@@ -16,10 +16,13 @@
 
 package com.streak.logging.analysis.example;
 
-import com.google.appengine.api.log.RequestLogs;
-import com.streak.logging.analysis.BigqueryFieldExporter;
+import java.util.List;
 
-public class TimestampFieldExporter implements BigqueryFieldExporter {
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.appengine.api.log.RequestLogs;
+import com.streak.logging.analysis.LogsFieldExporter;
+
+public class TimestampFieldExporter implements LogsFieldExporter {
 	private long timestamp;
 	
 	@Override
@@ -45,6 +48,21 @@ public class TimestampFieldExporter implements BigqueryFieldExporter {
 	@Override
 	public String getFieldType(int i) {
 		return "integer";
+	}
+
+	@Override
+	public boolean getFieldNullable(int i) {
+		return false;
+	}
+
+	@Override
+	public boolean getFieldRepeated(int i) {
+		return false;
+	}
+
+	@Override
+	public List<TableFieldSchema> getFieldFields(int i) {
+		return null;
 	}
 
 }

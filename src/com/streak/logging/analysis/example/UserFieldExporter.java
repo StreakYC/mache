@@ -19,10 +19,11 @@ package com.streak.logging.analysis.example;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.api.log.RequestLogs;
-import com.streak.logging.analysis.BigqueryFieldExporter;
+import com.streak.logging.analysis.LogsFieldExporter;
 
-public class UserFieldExporter implements BigqueryFieldExporter {
+public class UserFieldExporter implements LogsFieldExporter {
 	public List<String> NAMES = Arrays.asList("nickname", "ip", "userAgent");
 	
 	private String nickname;
@@ -64,6 +65,21 @@ public class UserFieldExporter implements BigqueryFieldExporter {
 	@Override
 	public String getFieldType(int i) {
 		return "string";
+	}
+
+	@Override
+	public boolean getFieldNullable(int i) {
+		return false;
+	}
+
+	@Override
+	public boolean getFieldRepeated(int i) {
+		return false;
+	}
+
+	@Override
+	public List<TableFieldSchema> getFieldFields(int i) {
+		return null;
 	}
 
 }

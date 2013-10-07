@@ -20,13 +20,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.appengine.api.log.RequestLogs;
-import com.streak.logging.analysis.BigqueryFieldExporter;
-import com.streak.logging.analysis.BigqueryFieldExporterSet;
+import com.streak.logging.analysis.LogsFieldExporter;
+import com.streak.logging.analysis.LogsFieldExporterSet;
 
-public class BasicFieldExporterSet implements BigqueryFieldExporterSet {
+public class BasicFieldExporterSet implements LogsFieldExporterSet {
 
 	@Override
-	public List<BigqueryFieldExporter> getExporters() {
+	public List<LogsFieldExporter> getExporters() {
 		return Arrays.asList(
 				new HttpTransactionFieldExporter(),
 				new InstanceFieldExporter(),

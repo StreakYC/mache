@@ -19,12 +19,12 @@ package com.streak.logging.analysis.example;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.api.log.RequestLogs;
-import com.streak.logging.analysis.BigqueryFieldExporter;
+import com.streak.logging.analysis.LogsFieldExporter;
 
-public class PerformanceFieldExporter implements BigqueryFieldExporter {
+public class PerformanceFieldExporter implements LogsFieldExporter {
 	private static final List<String> NAMES = Arrays.asList(
-			"apiMcycles", 
 			"cost", 
 			"responseSize", 
 			"mcycles",
@@ -33,7 +33,6 @@ public class PerformanceFieldExporter implements BigqueryFieldExporter {
 			"latencyUsec");
 	
 	private static final List<String> TYPES = Arrays.asList(
-			"integer", // apiMcycles
 			"float",   // cost
 			"integer", // responseSize
 			"integer", // mcycles
@@ -42,13 +41,12 @@ public class PerformanceFieldExporter implements BigqueryFieldExporter {
 			"integer"  // latencyUsec
 			);
 	
-	private long apiMcycles, responseSize, mcycles, pendingTimeUsec, latencyUsec;
+	private long responseSize, mcycles, pendingTimeUsec, latencyUsec;
 	private boolean loadingRequest;
 	private double cost;
 	
 	@Override
 	public void processLog(RequestLogs log) {
-		apiMcycles = log.getApiMcycles();
 		cost = log.getCost();
 		responseSize = log.getResponseSize();
 		mcycles = log.getMcycles();
@@ -59,9 +57,6 @@ public class PerformanceFieldExporter implements BigqueryFieldExporter {
 
 	@Override
 	public Object getField(String name) {
-		if (name == "apiMcycles") {
-			return apiMcycles;
-		}
 		if (name == "cost") {
 			return cost;
 		}
@@ -97,6 +92,21 @@ public class PerformanceFieldExporter implements BigqueryFieldExporter {
 	@Override
 	public String getFieldType(int i) {
 		return TYPES.get(i);
+	}
+
+	@Override
+	public boolean getFieldNullable(int i) {
+		return false;
+	}
+
+	@Override
+	public boolean getFieldRepeated(int i) {
+		return false;
+	}
+
+	@Override
+	public List<TableFieldSchema> getFieldFields(int i) {
+		return null;
 	}
 
 }
