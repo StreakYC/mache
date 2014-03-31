@@ -19,22 +19,25 @@ package com.streak.logging.analysis.example;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.api.log.RequestLogs;
-import com.streak.logging.analysis.BigqueryFieldExporter;
+import com.streak.logging.analysis.LogsFieldExporter;
 
-public class HttpTransactionFieldExporter implements BigqueryFieldExporter {
+public class HttpTransactionFieldExporter implements LogsFieldExporter {
 	private static final List<String> NAMES = Arrays.asList(
-			"httpStatus", "method", "httpVersion");
+			"httpStatus", "method", "httpVersion", "requestId");
 	
 	private int httpStatus;
 	private String method;
 	private String httpVersion;
+	private String requestId;
 	
 	@Override
 	public void processLog(RequestLogs log) {
 		httpStatus = log.getStatus();
 		method = log.getMethod();
 		httpVersion = log.getHttpVersion();
+		requestId = log.getRequestId();
 	}
 
 	@Override
@@ -47,6 +50,9 @@ public class HttpTransactionFieldExporter implements BigqueryFieldExporter {
 		}
 		if (name == "httpVersion") {
 			return httpVersion;
+		}
+		if (name == "requestId") {
+			return requestId;
 		}
 		
 		return null;
@@ -68,6 +74,21 @@ public class HttpTransactionFieldExporter implements BigqueryFieldExporter {
 			return "integer";
 		}
 		return "string";
+	}
+
+	@Override
+	public boolean getFieldNullable(int i) {
+		return false;
+	}
+	
+	@Override
+	public boolean getFieldRepeated(int i) {
+		return false;
+	}
+
+	@Override
+	public List<TableFieldSchema> getFieldFields(int i) {
+		return null;
 	}
 
 }

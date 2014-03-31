@@ -24,52 +24,64 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
-import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
+import com.google.api.services.bigquery.Bigquery.Jobs.Get;
 import com.google.api.services.bigquery.model.Job;
 import com.google.api.services.bigquery.model.JobList;
+import com.google.api.services.bigquery.model.JobList.Jobs;
 import com.google.api.services.bigquery.model.ProjectList;
 import com.google.api.services.bigquery.model.ProjectList.Projects;
+import com.google.gson.Gson;
+import com.streak.logging.utils.AnalysisConstants;
 
 /**
  * Diagnostic servlet that lists visible BigQuery projects and jobs.
  */
+@SuppressWarnings("serial")
 public class BigqueryStatusServlet extends HttpServlet {
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		resp.setContentType("text/plain");
+		resp.setContentType("application/json");
 		AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
-		HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(credential);
-		Bigquery bigquery = Bigquery.builder(HTTP_TRANSPORT, JSON_FACTORY).setHttpRequestInitializer(credential).setApplicationName("Streak Logs").build();
+		Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName("Streak Logs").build();
 
+		String jobId = req.getParameter(AnalysisConstants.JOB_ID_PARAM);
+		Object retVal = null;
+		if (jobId == null) {
+			retVal = listAllJobs(resp, bigquery);
+		}
+		else {
+			retVal = listJob(resp, bigquery, jobId);
+		}
+		resp.getWriter().println(new Gson().toJson(retVal));
+	}
+
+	public List<Jobs> listAllJobs(HttpServletResponse resp, Bigquery bigquery) throws IOException {
 		Bigquery.Projects.List projectRequest = bigquery.projects().list();
 		ProjectList projectResponse = projectRequest.execute();
-		resp.getWriter().println("Available Projects:" + projectResponse.toPrettyString());
 
-		if (projectResponse.getProjects() != null) {
-			for (Projects project : projectResponse.getProjects()) {
-				Bigquery.Jobs.List jobsRequest = bigquery.jobs().list(project.getId());
-				JobList jobsResponse = jobsRequest.execute();
-				List<JobList.Jobs> jobs = jobsResponse.getJobs();
-				resp.getWriter().println("=== Recent jobs for " + project.getId() + " ===");
-				if (jobs != null) {
-					for (JobList.Jobs job : jobs) {
-						resp.getWriter().println("Job " + job.getId() + ":");
-						resp.getWriter().println(job.toPrettyString());
-						String jobId = job.getJobReference().getJobId();
-						Bigquery.Jobs.Get jobRequest = bigquery.jobs().get(project.getId(), jobId);
-						Job jobResponse = jobRequest.execute();
-						resp.getWriter().println("Full job description:");
-						resp.getWriter().println(jobResponse.toPrettyString());
-					}
-				}
-			}
+		Bigquery.Jobs.List jobsRequest = bigquery.jobs().list(projectResponse.getProjects().get(0).getId());
+		JobList jobsResponse = jobsRequest.execute();
+		return jobsResponse.getJobs();
+	}
+
+	public Job listJob(HttpServletResponse resp, Bigquery bigquery, String jobId) throws IOException {
+		Bigquery.Projects.List projectRequest = bigquery.projects().list();
+		ProjectList projectResponse = projectRequest.execute();
+
+		if (projectResponse.getTotalItems() == 0) {
+			return null;
 		}
+
+		Projects project = projectResponse.getProjects().get(0);
+		Get jobsRequest = bigquery.jobs().get(project.getId(), jobId);
+		Job j = jobsRequest.execute();
+		return j;
 	}
 }

@@ -3,23 +3,34 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-api-client-1.10.3-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-api-client-appengine-1.10.3-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-api-client-servlet-1.10.3-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-api-services-bigquery-v2-rev18-1.7.2-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-http-client-1.10.3-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-http-client-appengine-1.10.3-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-oauth-client-1.10.1-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-oauth-client-appengine-1.10.1-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/google-oauth-client-servlet-1.10.1-beta.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/gson-2.2.1.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/guava-11.0.1.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/jackson-core-asl-1.9.4.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/jsr305-1.3.9.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/protobuf-java-2.2.0.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/transaction-api-1.1.jar"/>
-	<classpathentry kind="lib" path="bigquery_libs/xpp3-1.1.4c.jar"/>
-	<classpathentry kind="lib" path="appengine-mapper.jar"/>
-	<classpathentry kind="lib" path="hadoop-0.20.2-core.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-services-bigquery-v2-rev120-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-android-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-appengine-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-gson-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-jackson2-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-java6-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-api-client-servlet-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-http-client-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-http-client-android-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-http-client-appengine-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-http-client-gson-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-http-client-jackson2-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-http-client-jdo-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-oauth-client-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-oauth-client-appengine-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-oauth-client-java6-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-oauth-client-jetty-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/google-oauth-client-servlet-1.17.0-rc.jar"/>
+	<classpathentry kind="lib" path="bigquery/gson-2.1.jar"/>
+	<classpathentry kind="lib" path="bigquery/httpclient-4.0.1.jar"/>
+	<classpathentry kind="lib" path="bigquery/httpcore-4.0.1.jar"/>
+	<classpathentry kind="lib" path="bigquery/jackson-core-2.1.3.jar"/>
+	<classpathentry kind="lib" path="bigquery/jdo2-api-2.3-eb.jar"/>
+	<classpathentry kind="lib" path="bigquery/jetty-6.1.26.jar"/>
+	<classpathentry kind="lib" path="bigquery/jetty-util-6.1.26.jar"/>
+	<classpathentry kind="lib" path="bigquery/jsr305-1.3.9.jar"/>
+	<classpathentry kind="lib" path="bigquery/transaction-api-1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -28,9 +28,10 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.streak.logging.analysis.AnalysisConstants;
-import com.streak.logging.analysis.AnalysisUtility;
+import com.streak.logging.utils.AnalysisConstants;
+import com.streak.logging.utils.AnalysisUtility;
 
+@SuppressWarnings("serial")
 public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 	private static final String AH_BUILTIN_PYTHON_BUNDLE = "ah-builtin-python-bundle";
 	
@@ -47,7 +48,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		}
 		
 		// Instantiate the export config 
-		BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateExportConfig(builtinDatastoreExportConfig);
+		BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateDatastoreExportConfig(builtinDatastoreExportConfig);
 		
 		
 		String bucketName = exporterConfig.getBucketName();
@@ -80,7 +81,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		if (!exporterConfig.shouldSkipExportToBigquery()) {
 			BuiltinDatastoreToBigqueryIngesterTask.enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp);
 		}
-				
+						
 		resp.getWriter().println(AnalysisUtility.successJson("successfully kicked off backup job: " + backupName + ", export to bigquery will begin once backup is complete."));
 	}
 	
