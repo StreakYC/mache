@@ -196,7 +196,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		PreparedQuery pq = datastore.prepare(q);
 		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
 		if (results.size() != 1 || !results.get(0).getProperty("name").toString().contains(backupName)) {
-			System.err.println("BuiltinDatatoreToBigqueryIngesterTask: can't find backupName: " + backupName);
+			throw new IOException("BuiltinDatatoreToBigqueryIngesterTask: can't find backupName: " + backupName);
 		}
 		Entity result = results.get(0);
 		
