@@ -41,7 +41,9 @@ public interface LogsExportConfiguration {
 	
 	/**
 	 * 
-	 * @return the name of the the table in bigquery you want to export the logs to
+	 * @return the name of the bigquery table that is after the one that would be returned if you called getBigqueryTableId. 
+	 * this is used when creating tables in bigquery. If you are naming your tables based on month and calling getBigqueryTableId 
+	 * would return January then this method should return February if called with the same parameters
 	 */
 	public String getBigqueryNextTableId(long logRangeStartMs, long logRangeEndMs);
 	

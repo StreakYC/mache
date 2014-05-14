@@ -10,7 +10,7 @@ log files into BigQuery columns.
 
 App Engine provides access to logs for each request through the
 [LogService API](https://developers.google.com/appengine/docs/java/logservice/).
-The framework starts from a cron job that runs fairly often. The cron job simply enqueues a named task. This task is named such that one and only one task will run for a given time window. This time window is adjustable in your configuration class (see below). Every time this task runs, the task queries the log service for the logs for its specified time window, parses the logs into bigquery columns using built in extractor and/or extractors you write. It then exports this to bigquery using the streaming ingestion input method.
+The framework starts from a cron job that runs fairly often. The cron job simply enqueues a bunch of named tasks. These tasks are named such that one and only one task will run for a given time window. This time window is adjustable in your configuration class (see below). Every time this task runs, the task queries the log service for the logs for its specified time window, parses the logs into bigquery columns using built in extractor and/or extractors you write. It then exports this to bigquery using the streaming ingestion input method.
 
 
 ## Customizing the columns exported
@@ -51,7 +51,7 @@ It also contains the following method that is run once per log entry:
 After each call to *processLog(RequestLogs)*, the following method is called once for each field defined in the schema:
  - **getField(String)** returns the value for the given field name. The field name is guaranteed to be an interned string for efficient comparison. The return type should be appropriate to the data type you gave in *getFieldType*, but can be any object for which the *toString()* can be parsed appropriately by BigQuery (i.e. for an integer, either an Integer or a Long can be returned). If there is an error parsing the field, return null to abort the export. To indicate a lack of value, return an empty string.
 
-In order to run your BigqueryFieldExporter, you will need to imlement a com.streak.logging.analysis.BigqueryFieldExporterSet. It only has one method:
+In order to run your BigqueryFieldExporter, you will need to implement a com.streak.logging.analysis.BigqueryFieldExporterSet. It only has one method:
  - **getExporters()** returns the list of BigqueryFieldExporters.
 
 Checkout the documentation in <code>LogsExportConfiguration</code>.
