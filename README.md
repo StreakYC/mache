@@ -67,6 +67,73 @@ We've been working on this functionality or a little bit of time but recently Go
 
 You can put this call in your cron.xml to have the bigquery tables updated periodically. Checkout the documentation in <code>BuiltinDatastoreExportConfiguration</code>.
 
+# Sample web.xml
+
+```
+	<servlet>
+		<servlet-name>CreateLoggingTableServlet</servlet-name>
+		<servlet-class>com.streak.logging.analysis.CreateLoggingTableServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CreateLoggingTableServlet</servlet-name>
+		<url-pattern>/bqlogging/createLoggingTable</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>LogExportDirectToBigqueryTask</servlet-name>
+		<servlet-class>com.streak.logging.analysis.LogExportDirectToBigqueryTask</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>LogExportDirectToBigqueryTask</servlet-name>
+		<url-pattern>/bqlogging/logExportDirectToBigqueryTask</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>LogExportDirectToBigqueryStart</servlet-name>
+		<servlet-class>com.streak.logging.analysis.LogExportDirectToBigqueryStart</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>LogExportDirectToBigqueryStart</servlet-name>
+		<url-pattern>/bqlogging/logExportDirectToBigqueryStart</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>BigqueryStatusServlet</servlet-name>
+		<servlet-class>com.streak.logging.analysis.BigqueryStatusServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BigqueryStatusServlet</servlet-name>
+		<url-pattern>/bqlogging/bigqueryStatus</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>BuiltinDatastoreToBigqueryCronTask</servlet-name>
+		<servlet-class>com.streak.datastore.analysis.builtin.BuiltinDatastoreToBigqueryCronTask</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BuiltinDatastoreToBigqueryCronTask</servlet-name>
+		<url-pattern>/bqlogging/builtinDatastoreExport</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>BuiltinDatastoreToBigqueryIngestorTask</servlet-name>
+		<servlet-class>com.streak.datastore.analysis.builtin.BuiltinDatastoreToBigqueryIngesterTask</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BuiltinDatastoreToBigqueryIngestorTask</servlet-name>
+		<url-pattern>/bqlogging/builtinDatastoreToBigqueryIngestorTask</url-pattern>
+	</servlet-mapping>
+
+	<security-constraint>
+		<web-resource-collection>
+			<url-pattern>/bqlogging/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
+```
+
 
 # Registration
 If you haven't already, sign up for BigQuery at https://code.google.com/apis/console/
