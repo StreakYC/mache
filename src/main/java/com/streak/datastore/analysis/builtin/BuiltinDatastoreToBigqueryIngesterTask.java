@@ -51,6 +51,7 @@ import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Text;
+import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -80,7 +81,14 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		if (countdownMillis > 0) {
 			t.countdownMillis(countdownMillis);
 		}
-		QueueFactory.getQueue(exporterConfig.getQueueName()).add(t);
+		Queue queue;
+		if (!AnalysisUtility.areParametersValid(exporterConfig.getQueueName())) {
+			queue = QueueFactory.getDefaultQueue();
+		}
+		else {
+			queue = QueueFactory.getQueue(exporterConfig.getQueueName());
+		}
+		queue.add(t);
 	}
 	
 	

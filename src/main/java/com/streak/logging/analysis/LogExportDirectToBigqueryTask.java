@@ -64,7 +64,13 @@ public class LogExportDirectToBigqueryTask extends HttpServlet {
 		
 		for (int i = 0; i < AnalysisConstants.NUM_TASKS_TO_GENERATE_PER_ENQUEUE; i++) {
 			
-			Queue queue = QueueFactory.getQueue(config.getQueueName());
+			Queue queue;
+			if (!AnalysisUtility.areParametersValid(config.getQueueName())) {
+				queue = QueueFactory.getDefaultQueue();
+			}
+			else {
+				queue = QueueFactory.getQueue(config.getQueueName());
+			}
 			TaskOptions t = TaskOptions.Builder.withUrl(TASK_URL);
 			
 			t.param(AnalysisConstants.LOGS_EXPORTER_CONFIGURATION_PARAM, logsExporterConfigurationClassName);
