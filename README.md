@@ -60,10 +60,11 @@ Checkout the documentation in <code>LogsExportConfiguration</code>.
 We've been working on this functionality or a little bit of time but recently Google launched the ability for you to import datastore backups into BigQuery. The feature however is a manual process. Mache has built the ability for you to automatically kickoff backups of desired entity kinds and automatically start BigQuery ingestion jobs when the backup is complete. 
 
 ## Getting Started With Datastore to BigQuery Exports
-1. Add the mache JAR to your project
-2. Add the URL's listed in the logging section to your web.xml
-3. Create a class which implements <code>BuiltinDatastoreExportConfiguration</code>
-4. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=</code><the fully qualified class name that you implemented>
+1. Optional, only if you want to use the datastore export: You need to include the [google-api-java-client](https://code.google.com/p/google-api-java-client/) jars in your appengine project. The [setup page](https://code.google.com/p/google-api-java-client/wiki/Setup) tells you which jars to use. You will also need the jar file of the [BigQuery API Client Library for Java](https://developers.google.com/api-client-library/java/apis/bigquery/v2).
+2. Add the mache JAR to your project
+3. Add the URL's listed in the logging section to your web.xml
+4. Create a class which implements <code>BuiltinDatastoreExportConfiguration</code>
+5. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=&lt;fully-qualified-classname-of-datastore-export-config&gt;</code><the fully qualified class name that you implemented>
 
 You can put this call in your cron.xml to have the bigquery tables updated periodically. Checkout the documentation in <code>BuiltinDatastoreExportConfiguration</code>.
 
@@ -140,11 +141,15 @@ If you haven't already, sign up for BigQuery at https://code.google.com/apis/con
 
 You will need to enable billing under the Billing tab. 
 
-## Register your App Engine app with BigQuery
-
+### Register your App Engine app with BigQuery
 1. Go to the Google APIs console at https://code.google.com/apis/console/
 2. Go to the Team tab.
 3. In the "Add a teammate:" field, enter {your appid}@appspot.gserviceaccount.com and give it owner permissions.
+
+### Turn on the BigQuery API in your appengine project
+1. Got to https://console.developers.google.com/
+2. Navigate to your appengine project, select "APIs"
+3. Switch on the BigQuery API.
 
 ### Create your BigQuery dataset
 1. Go to the BigQuery browser tool at https://bigquery.cloud.google.com/.
@@ -152,4 +157,4 @@ You will need to enable billing under the Billing tab.
 3. Choose "Create new dataset". Note the name you chose. This is your BigQuery dataset ID.
 
 ### Get your Google APIs project ID
-1. Go to the Google APIs console at https://code.google.com/apis/console/, select the Google Cloud Storage tab, and make note of the number following "x-goog-project-id:". This is your Goole APIs project ID.
+1. Go to the Google APIs console at https://code.google.com/apis/console/, select the Google Cloud Storage tab, and make note of the number following "x-goog-project-id:". This is your Google APIs project ID.
