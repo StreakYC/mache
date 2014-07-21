@@ -10,17 +10,22 @@ log files into BigQuery columns.
 
 App Engine provides access to logs for each request through the
 [LogService API](https://developers.google.com/appengine/docs/java/logservice/).
-The framework starts from a cron job that runs fairly often. The cron job simply enqueues a bunch of named tasks. These tasks are named such that one and only one task will run for a given time window. This time window is adjustable in your configuration class (see below). Every time this task runs, the task queries the log service for the logs for its specified time window, parses the logs into bigquery columns using built in extractor and/or extractors you write. It then exports this to bigquery using the streaming ingestion input method.
+The framework starts from a cron job that runs fairly often. 
+The cron job simply enqueues a bunch of named tasks. 
+These tasks are named such that one and only one task will run for a given time window. 
+This time window is adjustable in your configuration class (see below). 
+Every time this task runs, the task queries the log service for the logs for its specified time window, 
+parses the logs into bigquery columns using built in extractor and/or extractors you write. 
+It then exports this to bigquery using the streaming ingestion input method.
 
 
 ## Customizing the columns exported
 The default implementation uses a set of user-defined exporters to parse each log
 into a CSV line, which it then outputs to Google BigQuery.
 
-The exporters to run are defined by a BigqueryFieldExporterSet. The framework
-includes a set of default exporters that export most of the basic request log
-information. See the "Writing your own exporter" section for the details of
-adding exporters specific to your application's logs.
+The exporters to run are defined by a com.streak.logging.analysis.LogsFieldExporterSet. 
+The framework includes a set of default exporters that export most of the basic request log information. 
+See the "Writing your own exporter" section for the details of adding exporters specific to your application's logs.
 
 ```
 <cron>	
@@ -31,8 +36,10 @@ adding exporters specific to your application's logs.
 ```
 
 # Customizing the export
+
 ## Parameters to the CRON task
 - **logsExportConfiguration** specify a fully qualified class name for a class that implements the **LogsExportConfiguration** interface
+
 ## Writing your own exporter
 You can export any field that your heart desires, as long as your heart desires one of the following data types:
  - **string** up to 64k
@@ -40,7 +47,8 @@ You can export any field that your heart desires, as long as your heart desires 
  - **float**
  - **boolean**
 
-You define fields to export by implementing com.streak.logging.analysis.BigqueryFieldExporter. It has the following methods that are run once for each log export to enumerate the schema:
+You define fields to export by implementing com.streak.logging.analysis.LogsFieldExporter. 
+It has the following methods that are run once for each log export to enumerate the schema:
  - **getFieldCount()** returns the number of fields parsed by this exporter.
  - **getFieldName(int)** takes an integer between 0 and getFieldCount() - 1, and returns the field name at that index. The ordering isn't important, but must be consistent with *getFieldType()*.
  - **getFieldType(int)** takes an integer between 0 and getFieldCount() - 1, and returns the field type at that index. The ordering isn't important, but must be consistent with *getFieldName()*. 
@@ -51,13 +59,19 @@ It also contains the following method that is run once per log entry:
 After each call to *processLog(RequestLogs)*, the following method is called once for each field defined in the schema:
  - **getField(String)** returns the value for the given field name. The field name is guaranteed to be an interned string for efficient comparison. The return type should be appropriate to the data type you gave in *getFieldType*, but can be any object for which the *toString()* can be parsed appropriately by BigQuery (i.e. for an integer, either an Integer or a Long can be returned). If there is an error parsing the field, return null to abort the export. To indicate a lack of value, return an empty string.
 
-In order to run your BigqueryFieldExporter, you will need to implement a com.streak.logging.analysis.BigqueryFieldExporterSet. It only has one method:
- - **getExporters()** returns the list of BigqueryFieldExporters.
+In order to run your LogsFieldExporter, you will need to implement a com.streak.logging.analysis.LogsFieldExporterSet. 
+It has the methods:
+ - **getExporters()** returns the list of LogsFieldExporters
+ - **skipLog(RequestLogs log)** returns true if given log request should be skipped
+ - **applicationVersionsToExport()** returns a list of "major" application versions or null if you want to export logs for the application this task is currently running on
 
 Checkout the documentation in <code>LogsExportConfiguration</code>.
 
 # Exporting Datastore Entities to BigQuery
-We've been working on this functionality or a little bit of time but recently Google launched the ability for you to import datastore backups into BigQuery. The feature however is a manual process. Mache has built the ability for you to automatically kickoff backups of desired entity kinds and automatically start BigQuery ingestion jobs when the backup is complete. 
+Google offers the ability for you to import datastore backups into BigQuery. 
+The feature however is a manual process. 
+Mache has built the ability for you to automatically kickoff backups of desired entity kinds 
+and automatically start BigQuery ingestion jobs when the backup is complete. 
 
 ## Getting Started With Datastore to BigQuery Exports
 1. Optional, only if you want to use the datastore export: You need to include the [google-api-java-client](https://code.google.com/p/google-api-java-client/) jars in your appengine project. The [setup page](https://code.google.com/p/google-api-java-client/wiki/Setup) tells you which jars to use. You will also need the jar file of the [BigQuery API Client Library for Java](https://developers.google.com/api-client-library/java/apis/bigquery/v2).
@@ -66,7 +80,8 @@ We've been working on this functionality or a little bit of time but recently Go
 4. Create a class which implements <code>BuiltinDatastoreExportConfiguration</code>
 5. Call <code>/bqlogging/builtinDatastoreExport?builtinDatastoreExportConfig=&lt;fully-qualified-classname-of-datastore-export-config&gt;</code><the fully qualified class name that you implemented>
 
-You can put this call in your cron.xml to have the bigquery tables updated periodically. Checkout the documentation in <code>BuiltinDatastoreExportConfiguration</code>.
+You can put this call in your cron.xml to have the bigquery tables updated periodically. 
+Checkout the documentation in <code>BuiltinDatastoreExportConfiguration</code>.
 
 # Sample web.xml
 
