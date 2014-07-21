@@ -158,3 +158,18 @@ You will need to enable billing under the Billing tab.
 
 ### Get your Google APIs project ID
 1. Go to the Google APIs console at https://code.google.com/apis/console/, select the Google Cloud Storage tab, and make note of the number following "x-goog-project-id:". This is your Google APIs project ID.
+
+
+# Migration from earlier versions
+
+## 0.3.0
+
+To migrate from version 0.2.x, you must add a method to your implementation of BuiltinDatastoreExportConfiguration.
+
+```
+  public boolean runAsService() {
+    return true;
+  }
+```
+
+If you you previously had errors like "Could not create backup via link: INSUFFICIENT_PERMISSION", returning false may solve this problem.
