@@ -31,7 +31,7 @@ public class PerformanceFieldExporter implements LogsFieldExporter {
     @Override
     public void processLog(JSONObject log) {
         cost = log.has("cost") ? log.getDouble("cost") : 0;
-        responseSize = log.getInt("responseSize");
+        responseSize = log.has("responseSize") ? log.getInt("responseSize") : 0L;
         mcycles = log.has("megaCycles") ? log.getInt("megaCycles") : 0L;
         loadingRequest = log.has("wasLoadingRequest") ? log.getBoolean("wasLoadingRequest") : false;
         pendingTimeUsec = log.has("pendingTime") ? getUsecFromSecondsString(log.getString("pendingTime")) : 0L;
