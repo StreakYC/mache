@@ -41,7 +41,7 @@ import java.util.List;
  * and then exits.
  */
 public class App {
-    private static List<FieldExporter> exporters = Arrays.asList((FieldExporter) new HttpStatusFieldExporter());
+    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter());
 
     /**
      * Converts strings into BigQuery rows.
@@ -101,7 +101,7 @@ public class App {
         pipeline
                 .apply(PubsubIO.Read.topic("/topics/mailfoogae/logstest1"))
                 .apply(ParDo.of(new StringToRowConverter()))
-                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test9")
+                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test10")
                         .withSchema(StringToRowConverter.getSchema()));
 
         pipeline.run();
