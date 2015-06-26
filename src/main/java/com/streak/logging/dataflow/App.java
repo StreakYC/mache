@@ -41,7 +41,7 @@ import java.util.List;
  * and then exits.
  */
 public class App {
-    private static List<LogsFieldExporter> exporters = Arrays.asList(new TimestampFieldExporter(), new UrlFieldExporter(), new HttpTransactionFieldExporter(), new PerformanceFieldExporter());
+    private static List<FieldExporter> exporters = Arrays.asList((FieldExporter) new HttpStatusFieldExporter());
 
     /**
      * Converts strings into BigQuery rows.
@@ -61,12 +61,8 @@ public class App {
             try {
                 if (log.has("protoPayload") && log.getJSONObject("protoPayload").has("@type") && log.getJSONObject("protoPayload").getString("@type").equals("type.googleapis.com/google.appengine.logging.v1.RequestLog")) {
                     JSONObject innerLog = log.getJSONObject("protoPayload");
-                    for (LogsFieldExporter exporter : Arrays.asList(new TimestampFieldExporter(), new UrlFieldExporter(), new HttpTransactionFieldExporter(), new PerformanceFieldExporter())) {
-                        exporter.processLog(innerLog);
-
-                        for (int i = 0; i < exporter.getFieldCount(); i++) {
-                            tr = tr.set(exporter.getFieldName(i), exporter.getField(exporter.getFieldName(i)));
-                        }
+                    for (FieldExporter exporter : exporters) {
+                        tr = tr.set(exporter.getSchema().getName(), exporter.getFieldValue(innerLog));
                     }
                 }
             }
@@ -85,10 +81,8 @@ public class App {
                     add(new TableFieldSchema().setName("raw").setType("STRING"));
                     add(new TableFieldSchema().setName("parseError").setType("STRING"));
                     add(new TableFieldSchema().setName("parseStack").setType("STRING"));
-                    for (LogsFieldExporter exporter : exporters) {
-                        for (int i = 0; i < exporter.getFieldCount(); i++) {
-                            add(new TableFieldSchema().setName(exporter.getFieldName(i)).setType(exporter.getFieldType(i)));
-                        }
+                    for (FieldExporter exporter : exporters) {
+                        add(exporter.getSchema());
                     }
                 }
             });
@@ -107,7 +101,7 @@ public class App {
         pipeline
                 .apply(PubsubIO.Read.topic("/topics/mailfoogae/logstest1"))
                 .apply(ParDo.of(new StringToRowConverter()))
-                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test8")
+                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test9")
                         .withSchema(StringToRowConverter.getSchema()));
 
         pipeline.run();
