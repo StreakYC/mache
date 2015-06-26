@@ -41,7 +41,7 @@ import java.util.List;
  * and then exits.
  */
 public class App {
-    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter(), new HostFieldExporter(), new ResourceFieldExporter(), new PathFieldExporter(), new CostFieldExporter(), new ResponseSizeFieldExporter(), new MegaCycleFieldExporter(), new LoadingRequestFieldExporter(), new PendingTimeUsecFieldExporter(), new LatencyUsecFieldExporter(), new TimestampFieldExporter(), new NicknameFieldExporter(), new IpAddressFieldExporter(), new UserAgentFieldExporter(), new TraceFieldExporter());
+    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter(), new HostFieldExporter(), new ResourceFieldExporter(), new PathFieldExporter(), new CostFieldExporter(), new ResponseSizeFieldExporter(), new MegaCycleFieldExporter(), new LoadingRequestFieldExporter(), new PendingTimeUsecFieldExporter(), new LatencyUsecFieldExporter(), new TimestampFieldExporter(), new NicknameFieldExporter(), new IpAddressFieldExporter(), new UserAgentFieldExporter(), new InstanceKeyFieldExporter(), new VersionIdFieldExporter(), new ModuleIdFieldExporter(), new TraceFieldExporter());
 
     /**
      * Converts strings into BigQuery rows.
