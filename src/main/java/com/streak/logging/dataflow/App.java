@@ -41,7 +41,7 @@ import java.util.List;
  * and then exits.
  */
 public class App {
-    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter(), new HostFieldExporter(), new ResourceFieldExporter(), new PathFieldExporter());
+    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter(), new HostFieldExporter(), new ResourceFieldExporter(), new PathFieldExporter(), new CostFieldExporter(), new ResponseSizeFieldExporter(), new MegaCycleFieldExporter(), new LoadingRequestFieldExporter(), new PendingTimeUsecFieldExporter(), new LatencyUsecFieldExporter(), new TimestampFieldExporter());
 
     /**
      * Converts strings into BigQuery rows.
@@ -101,7 +101,7 @@ public class App {
         pipeline
                 .apply(PubsubIO.Read.topic("/topics/mailfoogae/logstest1"))
                 .apply(ParDo.of(new StringToRowConverter()))
-                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test11")
+                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test12")
                         .withSchema(StringToRowConverter.getSchema()));
 
         pipeline.run();

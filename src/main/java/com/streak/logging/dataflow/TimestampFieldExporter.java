@@ -7,65 +7,46 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 
-public class TimestampFieldExporter implements LogsFieldExporter {
-    private long timestamp;
+public class TimestampFieldExporter implements FieldExporter {
+    private static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Override
-    public void processLog(JSONObject log) {
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
-
+    public Object getFieldValue(JSONObject log) {
         String startTime = log.getString("startTime");
-        String dataTime = startTime.split("\\.")[0];
-        String fractionalSeconds = startTime.split("\\.")[1];
 
+        String date;
+        String fractionalSeconds;
 
+        if (startTime.contains(".")) {
+            date = startTime.split("\\.")[0];
+            fractionalSeconds = startTime.split("\\.")[1];
+        }
+        else {
+            date = startTime.substring(0, startTime.length() - 1);
+            fractionalSeconds = "";
+        }
 
-        long dateMilliseconds = formatter.parseDateTime(dataTime).getMillis();
+        long dateMilliseconds = extractDatePortion(date);
+        long microSeconds = extractFractionalSecondsPortion(fractionalSeconds);
+
+        return dateMilliseconds * 1000 + microSeconds;
+    }
+
+    private long extractDatePortion(String date) {
+        return dateFormatter.parseDateTime(date).getMillis();
+    }
+
+    private long extractFractionalSecondsPortion(String fractionalSeconds) {
+        if (fractionalSeconds.equals("")) {
+            return 0;
+        }
 
         long microSeconds = Long.valueOf(fractionalSeconds.substring(0, fractionalSeconds.length() - 1));
-        microSeconds = microSeconds * (long) Math.pow((double) 10, (double) (7 - fractionalSeconds.length()));
-
-        timestamp = dateMilliseconds * 1000 + microSeconds;
+        return microSeconds * (long) Math.pow((double) 10, (double) (7 - fractionalSeconds.length()));
     }
 
     @Override
-    public Object getField(String name) {
-        return timestamp;
+    public TableFieldSchema getSchema() {
+        return new TableFieldSchema().setName("timestamp").setType("INTEGER");
     }
-
-    @Override
-    public int getFieldCount() {
-        return 1;
-    }
-
-    @Override
-    public String getFieldName(int i) {
-        return "timestamp";
-    }
-
-    @Override
-    public String getFieldType(int i) {
-        return "INTEGER";
-    }
-
-    @Override
-    public boolean getFieldNullable(int i) {
-        return false;
-    }
-
-    @Override
-    public boolean getFieldRepeated(int i) {
-        return false;
-    }
-
-    @Override
-    public String getFieldMode(int fieldIndex) {
-        return "REQUIRED";
-    }
-
-    @Override
-    public List<TableFieldSchema> getFieldFields(int i) {
-        return null;
-    }
-
 }
