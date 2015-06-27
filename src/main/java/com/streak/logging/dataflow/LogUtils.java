@@ -34,12 +34,12 @@ public class LogUtils {
 //        return extractJson(logLine.getLogMessage());
 //    }
 //
-//    public static String extractJson(String msg) {
-//        if (msg.indexOf("{") > -1) {
-//            return msg.substring(msg.indexOf("{"));
-//        }
-//        return "";
-//    }
+    public static String extractJson(String msg) {
+        if (msg.indexOf("{") > -1) {
+            return msg.substring(msg.indexOf("{"));
+        }
+        return "";
+    }
 //
 //    public static boolean isLineHeadingFor(String headingName, AppLogLine line) {
 //        return isLineHeadingFor(headingName, line.getLogMessage());
