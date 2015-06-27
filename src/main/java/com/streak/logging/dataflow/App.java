@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class App {
-    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter(), new HostFieldExporter(), new ResourceFieldExporter(), new PathFieldExporter(), new CostFieldExporter(), new ResponseSizeFieldExporter(), new MegaCycleFieldExporter(), new LoadingRequestFieldExporter(), new PendingTimeUsecFieldExporter(), new LatencyUsecFieldExporter(), new TimestampFieldExporter(), new NicknameFieldExporter(), new IpAddressFieldExporter(), new UserAgentFieldExporter(), new InstanceKeyFieldExporter(), new VersionIdFieldExporter(), new ModuleIdFieldExporter(), new TraceFieldExporter(), new WebClientVersionFieldExporter(), new WebExtensionVersionFieldExporter(), new EmailFieldExporter(), new CanonicalPathFieldExporter());
+    private static List<FieldExporter> exporters = Arrays.asList(new HttpStatusFieldExporter(), new MethodFieldExporter(), new HttpVersionFieldExporter(), new RequestIdFieldExporter(), new HostFieldExporter(), new ResourceFieldExporter(), new PathFieldExporter(), new CostFieldExporter(), new ResponseSizeFieldExporter(), new MegaCycleFieldExporter(), new LoadingRequestFieldExporter(), new PendingTimeUsecFieldExporter(), new LatencyUsecFieldExporter(), new TimestampFieldExporter(), new NicknameFieldExporter(), new IpAddressFieldExporter(), new UserAgentFieldExporter(), new InstanceKeyFieldExporter(), new VersionIdFieldExporter(), new ModuleIdFieldExporter(), new TraceFieldExporter(), new WebClientVersionFieldExporter(), new WebExtensionVersionFieldExporter(), new EmailFieldExporter(), new CanonicalPathFieldExporter(), new ParamsFieldExporter(), new ProfilerFieldExporter(), new HeadersFieldExporter());
 
     static class StringToRowConverter extends DoFn<String, TableRow> {
         private static final long serialVersionUID = 0;
@@ -67,7 +67,7 @@ public class App {
         pipeline
                 .apply(PubsubIO.Read.topic("/topics/mailfoogae/logstest1"))
                 .apply(ParDo.of(new StringToRowConverter()))
-                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test15")
+                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test16")
                         .withSchema(StringToRowConverter.getSchema()));
 
         pipeline.run();
