@@ -1,9 +1,9 @@
 package com.streak.logging.dataflow;
 
+import com.rewardly.mailfoo.utils.Constants;
 import org.json.JSONArray;
 
 import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
 
 public class LogUtils {
 
@@ -20,15 +20,15 @@ public class LogUtils {
 //        return extractParameter(param, logLine.getLogMessage());
 //    }
 //
-//    public static String extractParameter(String param, String msg) {
-//        String[] lines = msg.split("\\r?\\n");
-//        for (String line : lines) {
-//            if (line.startsWith(param + KEY_VALUE_SEPERATOR)) {
-//                return line.replace(param + KEY_VALUE_SEPERATOR, "");
-//            }
-//        }
-//        return "";
-//    }
+    public static String extractParameter(String param, String msg) {
+        String[] lines = msg.split("\\r?\\n");
+        for (String line : lines) {
+            if (line.startsWith(param + KEY_VALUE_SEPERATOR)) {
+                return line.replace(param + KEY_VALUE_SEPERATOR, "");
+            }
+        }
+        return "";
+    }
 //
 //    public static String extractJson(AppLogLine logLine) {
 //        return extractJson(logLine.getLogMessage());
@@ -49,20 +49,20 @@ public class LogUtils {
 //        return isLineHeading(line.getLogMessage());
 //    }
 //
-//    public static boolean isLineHeadingFor(String headingName, String line) {
-//        if (line.contains(getLogLineHeadingFor(headingName))) {
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//    public static String getLogLineHeadingFor(String headingName) {
-//        return headingName + Constants.LOG_LINE_HEADER_SUFFIX + "\n";
-//    }
+    public static boolean isLineHeadingFor(String headingName, String line) {
+        if (line.contains(getLogLineHeadingFor(headingName))) {
+            return true;
+        }
+        return false;
+    }
+
+    public static String getLogLineHeadingFor(String headingName) {
+        return headingName + Constants.LOG_LINE_HEADER_SUFFIX + "\n";
+    }
 
     public static boolean isLineHeading(String line) {
         String[] lines = line.split("\n");
-        if (lines != null && lines.length > 0 && lines[0].contains(LogConstants.LOG_LINE_HEADER_SUFFIX)) {
+        if (lines != null && lines.length > 0 && lines[0].contains(Constants.LOG_LINE_HEADER_SUFFIX)) {
             return true;
         }
         return false;
