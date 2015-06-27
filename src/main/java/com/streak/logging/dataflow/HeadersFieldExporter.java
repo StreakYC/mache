@@ -25,6 +25,6 @@ public class HeadersFieldExporter implements FieldExporter {
 
     @Override
     public TableFieldSchema getSchema() {
-        return new TableFieldSchema().setName("profiler").setType("STRING");
+        return new TableFieldSchema().setName("headers").setType("STRING");
     }
 }
