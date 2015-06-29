@@ -67,7 +67,7 @@ public class App {
         pipeline
                 .apply(PubsubIO.Read.topic("/topics/mailfoogae/logstest1"))
                 .apply(ParDo.of(new StringToRowConverter()))
-                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test16")
+                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test17")
                         .withSchema(StringToRowConverter.getSchema()));
 
         pipeline.run();

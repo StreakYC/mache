@@ -9,7 +9,7 @@ import org.json.JSONObject;
 public class ModuleIdFieldExporter implements FieldExporter {
     @Override
     public Object getFieldValue(JSONObject log) {
-        return log.getString("moduleId");
+        return log.has("moduleId") ? log.getString("moduleId") : "";
     }
 
     @Override

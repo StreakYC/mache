@@ -9,7 +9,7 @@ import org.json.JSONObject;
 public class InstanceKeyFieldExporter implements FieldExporter {
     @Override
     public Object getFieldValue(JSONObject log) {
-        return log.getString("instanceId");
+        return log.has("instanceId") ? log.getString("instanceId") : "";
     }
 
     @Override

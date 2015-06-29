@@ -9,7 +9,7 @@ import org.json.JSONObject;
 public class UserAgentFieldExporter implements FieldExporter {
     @Override
     public Object getFieldValue(JSONObject log) {
-        return log.getString("userAgent");
+        return log.has("userAgent") ? log.getString("userAgent") : "";
     }
 
     @Override
