@@ -6,13 +6,13 @@ import com.google.api.services.bigquery.model.TableSchema;
 import com.google.cloud.dataflow.sdk.Pipeline;
 import com.google.cloud.dataflow.sdk.io.BigQueryIO;
 import com.google.cloud.dataflow.sdk.io.PubsubIO;
-import com.google.cloud.dataflow.sdk.options.PipelineOptions;
-import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
+import com.google.cloud.dataflow.sdk.options.*;
 import com.google.cloud.dataflow.sdk.transforms.DoFn;
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,14 +60,27 @@ public class App {
         }
     }
 
+    private interface StreamingWordExtractOptions
+            extends DataflowPipelineOptions {
+        @Description("Pub/Sub topic")
+        String getPubsubTopic();
+        void setPubsubTopic(String topic);
+
+        @Description("BigQuery table name")
+        String getBigQueryTable();
+        void setBigQueryTable(String table);
+    }
+
     public static void main(String[] args) throws IOException {
-        PipelineOptions options = PipelineOptionsFactory.fromArgs(args).create();
+        StreamingWordExtractOptions options = PipelineOptionsFactory.fromArgs(args)
+                .withValidation()
+                .as(StreamingWordExtractOptions.class);
 
         Pipeline pipeline = Pipeline.create(options);
         pipeline
-                .apply(PubsubIO.Read.topic("/topics/mailfoogae/logstest1"))
+                .apply(PubsubIO.Read.topic(options.getPubsubTopic()))
                 .apply(ParDo.of(new StringToRowConverter()))
-                .apply(BigQueryIO.Write.to("mailfoogae:dataflowLogsTest.test17")
+                .apply(BigQueryIO.Write.to(options.getBigQueryTable())
                         .withSchema(StringToRowConverter.getSchema()));
 
         pipeline.run();
