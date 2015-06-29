@@ -12,7 +12,7 @@ import org.json.JSONObject;
 public class ParamsFieldExporter implements FieldExporter {
     @Override
     public Object getFieldValue(JSONObject log) {
-        JSONArray logLines = log.getJSONArray("line");
+        JSONArray logLines = log.has("line") ? log.getJSONArray("line") : new JSONArray();
         for (int i = 0; i < logLines.length(); i++) {
             String line = logLines.getJSONObject(i).getString("logMessage");
             if (LogUtils.isLineHeadingFor(Constants.PARAMETERS_LOG_LINE, line)) {

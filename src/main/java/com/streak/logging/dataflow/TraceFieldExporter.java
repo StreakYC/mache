@@ -12,7 +12,7 @@ public class TraceFieldExporter implements FieldExporter {
 
     @Override
     public Object getFieldValue(JSONObject log) {
-        JSONArray logLines = log.getJSONArray("line");
+        JSONArray logLines = log.has("line") ? log.getJSONArray("line") : new JSONArray();
         return LogUtils.fullTextOfLog(logLines, MAX_BYTES_IN_TRACE);
     }
 

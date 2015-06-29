@@ -20,7 +20,7 @@ public class DaoOpsFieldExporter implements FieldExporter {
     @Override
     public Object getFieldValue(JSONObject log) {
         List<Map<String, Object>> daoOps = new ArrayList<>();
-        JSONArray logLines = log.getJSONArray("line");
+        JSONArray logLines = log.has("line") ? log.getJSONArray("line") : new JSONArray();
 
         for (int i = 0; i < logLines.length(); i++) {
             String line = logLines.getJSONObject(i).getString("logMessage");
