@@ -33,6 +33,7 @@ public class ErrorsFieldExporter implements FieldExporter {
                     e = GsonCustom.getGson().fromJson(json, Error.class);
                 }
                 catch (Exception jse) {
+                    throw jse;
 //                    Logger.log("GSON ERROR");  TODO: figure out dataflow logging
 //                    Logger.log(json);
                 }
