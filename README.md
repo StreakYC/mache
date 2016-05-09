@@ -6,6 +6,10 @@ consists of a cron task that periodically copies data from the App Engine
 LogService to a BigQuery table, and lets you customize the parsing of your
 log files into BigQuery columns.
 
+# Note: Mache is currently outdated
+
+The current version of mache is outdated. It is going to be updated in the near future.
+
 # How does it work?
 
 App Engine provides access to logs for each request through the
