@@ -213,42 +213,47 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		CompositeFilter comp = new CompositeFilter(CompositeFilterOperator.AND, filters); 
 		q.setFilter(comp);
 		
-		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
-		if (results.size() != 1 || !results.get(0).getProperty("name").toString().contains(backupName)) {
-		  String message = "BuiltinDatatoreToBigqueryIngesterTask: can't find backupName: " + backupName;
-			System.err.println(message);
-			log.severe(message);
-			return null;
+		try {
+  		PreparedQuery pq = datastore.prepare(q);
+  		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
+  		if (results.size() != 1 || !results.get(0).getProperty("name").toString().contains(backupName)) {
+  		  String message = "BuiltinDatatoreToBigqueryIngesterTask: can't find backupName: " + backupName;
+  			System.err.println(message);
+  			log.severe(message);
+  			return null;
+  		}
+  		Entity result = results.get(0);
+  		
+  		Object completion = result.getProperty("complete_time");
+  		Object gs_handle_obj = result.getProperty("gs_handle");
+  		if (gs_handle_obj == null) {
+  			return null;
+  		}
+  		log.warning("gs handle object: " + gs_handle_obj.toString());
+  		log.warning("gs handle obj type: " + gs_handle_obj.getClass().toString());
+  		
+  		String gs_handle = null;
+  		if (gs_handle_obj instanceof String) {
+  			gs_handle = (String) gs_handle_obj;
+  		}
+  		else if (gs_handle_obj instanceof Text) {
+  			gs_handle = ((Text)gs_handle_obj).getValue();
+  		}
+  
+  		String keyResult = null;
+  		if (completion != null) {
+  			keyResult = KeyFactory.keyToString(result.getKey());
+  		}
+  		
+  		log.warning("result: " + result);
+  		log.warning("complete_time: " + completion);
+  		log.warning("keyResult: " + keyResult);
+  		log.warning("gs_handle: " + gs_handle);
+  		
+  		return gs_handle;
+		} catch (Exception ex) {
+		  log.severe("checkAndGetCompletedBackupGSHandle encountered a "+ex.getClass().getName()+" for "+backupName+": "+ex.getMessage());
+		  return null;
 		}
-		Entity result = results.get(0);
-		
-		Object completion = result.getProperty("complete_time");
-		Object gs_handle_obj = result.getProperty("gs_handle");
-		if (gs_handle_obj == null) {
-			return null;
-		}
-		log.warning("gs handle object: " + gs_handle_obj.toString());
-		log.warning("gs handle obj type: " + gs_handle_obj.getClass().toString());
-		
-		String gs_handle = null;
-		if (gs_handle_obj instanceof String) {
-			gs_handle = (String) gs_handle_obj;
-		}
-		else if (gs_handle_obj instanceof Text) {
-			gs_handle = ((Text)gs_handle_obj).getValue();
-		}
-
-		String keyResult = null;
-		if (completion != null) {
-			keyResult = KeyFactory.keyToString(result.getKey());
-		}
-		
-		log.warning("result: " + result);
-		log.warning("complete_time: " + completion);
-		log.warning("keyResult: " + keyResult);
-		log.warning("gs_handle: " + gs_handle);
-		
-		return gs_handle;
 	}
 }

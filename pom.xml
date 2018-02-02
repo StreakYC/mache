@@ -4,11 +4,11 @@
 
 	<groupId>com.streak</groupId>
 	<artifactId>mache</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
+	<version>0.4.0-NVE</version>
 	<packaging>jar</packaging>
 
 	<name>Mache</name>
-	<url>https://github.com/StreakYC/mache</url>
+	<url>https://github.com/nverwer/mache</url>
 
 	<licenses>
 		<license>
@@ -25,11 +25,6 @@
 			<organizationUrl>http://www.streak.com</organizationUrl>
 		</developer>
 	</developers>
-	<scm>
-		<connection>scm:git:git@github.com:StreakYC/mache.git</connection>
-		<developerConnection>scm:git:git@github.com:StreakYC/mache.git</developerConnection>
-		<url>git@github.com:StreakYC/mache.git</url>
-	</scm>
 
 
 	<properties>
