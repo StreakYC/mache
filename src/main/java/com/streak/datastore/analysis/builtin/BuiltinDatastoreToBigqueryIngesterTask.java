@@ -63,20 +63,22 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 	private static final int MILLIS_TO_ENQUEUE = 60000;
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
-	
+
 	private static final String BUILTIN_DATASTORE_TO_BIGQUERY_INGESTOR_TASK_PATH = "/builtinDatastoreToBigqueryIngestorTask";
 
 	private static final Logger log = Logger.getLogger("bqlogging");
-	
+
+	private static final long MAX_AGE_BACKUP_NOT_FOUND_MS = 300000; // 5 min
+
 	public static void enqueueTask(String baseUrl, BuiltinDatastoreExportConfiguration exporterConfig, long timestamp) {
 		enqueueTask(baseUrl, exporterConfig, timestamp, 0);
-	}	
-	
+	}
+
 	private static void enqueueTask(String baseUrl, BuiltinDatastoreExportConfiguration exporterConfig, long timestamp, long countdownMillis) {
 		TaskOptions t = TaskOptions.Builder.withUrl(baseUrl + BUILTIN_DATASTORE_TO_BIGQUERY_INGESTOR_TASK_PATH);
 		t.param(AnalysisConstants.TIMESTAMP_PARAM, Long.toString(timestamp));
 		t.param(AnalysisConstants.BUILTIN_DATASTORE_EXPORT_CONFIG, exporterConfig.getClass().getName());
-		
+
 		t.method(Method.GET);
 		if (countdownMillis > 0) {
 			t.countdownMillis(countdownMillis);
@@ -90,9 +92,10 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		}
 		queue.add(t);
 	}
-	
-	
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+
+	@Override
+  public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("application/json");
 
 		String timestampStr = req.getParameter(AnalysisConstants.TIMESTAMP_PARAM);
@@ -110,27 +113,33 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
-		
+
 		String builtinDatastoreExportConfig = req.getParameter(AnalysisConstants.BUILTIN_DATASTORE_EXPORT_CONFIG);
 		if (!AnalysisUtility.areParametersValid(builtinDatastoreExportConfig)) {
 			log.warning("Missing required param: " + AnalysisConstants.BUILTIN_DATASTORE_EXPORT_CONFIG);
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
-		
-		// Instantiate the export config 
-		BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateDatastoreExportConfig(builtinDatastoreExportConfig);
-		
-		String gsHandleOfBackup = checkAndGetCompletedBackupGSHandle(AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix())); 
+
+    // Instantiate the export config
+    BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateDatastoreExportConfig(builtinDatastoreExportConfig);
+
+    if (timestamp - System.currentTimeMillis() > MAX_AGE_BACKUP_NOT_FOUND_MS) {
+      log.warning("Cannot find backup: "+exporterConfig.getBucketName()+"; builtinDatastoreExportConfig: "+builtinDatastoreExportConfig);
+      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+
+		String gsHandleOfBackup = checkAndGetCompletedBackupGSHandle(AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix()));
 		if (gsHandleOfBackup == null) {
-			log.warning("gsHandleOfBackup: null");
+			log.warning("gsHandleOfBackup: null; expected: "+exporterConfig.getBucketName()+"; builtinDatastoreExportConfig: "+builtinDatastoreExportConfig);
 			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in " + MILLIS_TO_ENQUEUE + " millis"));
 			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, MILLIS_TO_ENQUEUE);
 			return;
 		}
 		log.warning("backup complete, starting bigquery ingestion");
 		log.warning("gsHandleOfBackup: " + gsHandleOfBackup);
-		
+
 		AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
 
 		Bigquery bigquery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName("Streak Logs").build();
@@ -166,7 +175,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		for (String kind : exporterConfig.getEntityKindsToExport()) {
 			String gsUrl = convertHandleToUrl(gsHandleOfBackup, kind);
 			log.warning("gsUrl: " + gsUrl);
-			
+
 			Job job = new Job();
 			JobConfiguration config = new JobConfiguration();
 			JobConfigurationLoad loadConfig = new JobConfigurationLoad();
@@ -198,21 +207,21 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 
 	private String checkAndGetCompletedBackupGSHandle(String backupName) throws IOException {
 		log.warning("backupName: " + backupName);
-		
+
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		
+
 		Query q = new Query("_AE_Backup_Information");
-		
-		// for some reason the datastore admin code appends the date to the backup name even when creating programatically, 
+
+		// for some reason the datastore admin code appends the date to the backup name even when creating programatically,
 		// so test for greater than or equal to and then take the first result
 		FilterPredicate greater = new FilterPredicate("name", FilterOperator.GREATER_THAN_OR_EQUAL, backupName);
 		FilterPredicate less = new FilterPredicate("name", FilterOperator.LESS_THAN_OR_EQUAL, backupName + "Z");
 		List<Query.Filter> filters = new ArrayList<Query.Filter>();
 		filters.add(greater);
 		filters.add(less);
-		CompositeFilter comp = new CompositeFilter(CompositeFilterOperator.AND, filters); 
+		CompositeFilter comp = new CompositeFilter(CompositeFilterOperator.AND, filters);
 		q.setFilter(comp);
-		
+
 		try {
   		PreparedQuery pq = datastore.prepare(q);
   		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
@@ -223,15 +232,16 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
   			return null;
   		}
   		Entity result = results.get(0);
-  		
+
   		Object completion = result.getProperty("complete_time");
   		Object gs_handle_obj = result.getProperty("gs_handle");
   		if (gs_handle_obj == null) {
+  		  log.warning("Backup has no gs handle: "+result.toString());
   			return null;
   		}
   		log.warning("gs handle object: " + gs_handle_obj.toString());
   		log.warning("gs handle obj type: " + gs_handle_obj.getClass().toString());
-  		
+
   		String gs_handle = null;
   		if (gs_handle_obj instanceof String) {
   			gs_handle = (String) gs_handle_obj;
@@ -239,17 +249,17 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
   		else if (gs_handle_obj instanceof Text) {
   			gs_handle = ((Text)gs_handle_obj).getValue();
   		}
-  
+
   		String keyResult = null;
   		if (completion != null) {
   			keyResult = KeyFactory.keyToString(result.getKey());
   		}
-  		
+
   		log.warning("result: " + result);
   		log.warning("complete_time: " + completion);
   		log.warning("keyResult: " + keyResult);
   		log.warning("gs_handle: " + gs_handle);
-  		
+
   		return gs_handle;
 		} catch (Exception ex) {
 		  log.severe("checkAndGetCompletedBackupGSHandle encountered a "+ex.getClass().getName()+" for "+backupName+": "+ex.getMessage());
