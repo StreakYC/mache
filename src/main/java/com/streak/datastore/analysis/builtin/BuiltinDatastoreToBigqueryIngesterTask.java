@@ -60,7 +60,7 @@ import com.streak.logging.utils.AnalysisUtility;
 
 @SuppressWarnings("serial")
 public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
-	private static final int MILLIS_TO_ENQUEUE = 60000;
+	private static final int MILLIS_TO_ENQUEUE = 180000; // 3 min
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
@@ -68,7 +68,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 
 	private static final Logger log = Logger.getLogger("bqlogging");
 
-	private static final long MAX_AGE_BACKUP_NOT_FOUND_MS = 300000; // 5 min
+	private static final long MAX_AGE_BACKUP_NOT_FOUND_MS = 900000; // 15 min
 
 	public static void enqueueTask(String baseUrl, BuiltinDatastoreExportConfiguration exporterConfig, long timestamp) {
 		enqueueTask(baseUrl, exporterConfig, timestamp, 0);
@@ -109,14 +109,14 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 			}
 		}
 		if (timestamp == 0) {
-			log.warning("Missing required param: " + AnalysisConstants.TIMESTAMP_PARAM);
+			log.severe("Missing required param: " + AnalysisConstants.TIMESTAMP_PARAM);
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
 
 		String builtinDatastoreExportConfig = req.getParameter(AnalysisConstants.BUILTIN_DATASTORE_EXPORT_CONFIG);
 		if (!AnalysisUtility.areParametersValid(builtinDatastoreExportConfig)) {
-			log.warning("Missing required param: " + AnalysisConstants.BUILTIN_DATASTORE_EXPORT_CONFIG);
+			log.severe("Missing required param: " + AnalysisConstants.BUILTIN_DATASTORE_EXPORT_CONFIG);
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
@@ -125,20 +125,22 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
     BuiltinDatastoreExportConfiguration exporterConfig = AnalysisUtility.instantiateDatastoreExportConfig(builtinDatastoreExportConfig);
 
     if (timestamp - System.currentTimeMillis() > MAX_AGE_BACKUP_NOT_FOUND_MS) {
-      log.warning("Cannot find backup: "+exporterConfig.getBucketName()+"; builtinDatastoreExportConfig: "+builtinDatastoreExportConfig);
+      log.severe("Cannot find backup after retrying 15 minutes: "+exporterConfig.getBucketName()+"; builtinDatastoreExportConfig: "+builtinDatastoreExportConfig);
       resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       return;
     }
 
 		String gsHandleOfBackup = checkAndGetCompletedBackupGSHandle(AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix()));
 		if (gsHandleOfBackup == null) {
-			log.warning("gsHandleOfBackup: null; expected: "+exporterConfig.getBucketName()+"; builtinDatastoreExportConfig: "+builtinDatastoreExportConfig);
+		  String baseUrl = AnalysisUtility.getRequestBaseName(req);
+			log.severe("gsHandleOfBackup: null; expected: "+exporterConfig.getBucketName()+"; builtinDatastoreExportConfig: "+builtinDatastoreExportConfig);
+			log.info("backup incomplete, retrying "+baseUrl+" in " + MILLIS_TO_ENQUEUE + " millis");
 			resp.getWriter().println(AnalysisUtility.successJson("backup incomplete, retrying in " + MILLIS_TO_ENQUEUE + " millis"));
-			enqueueTask(AnalysisUtility.getRequestBaseName(req), exporterConfig, timestamp, MILLIS_TO_ENQUEUE);
+			enqueueTask(baseUrl, exporterConfig, timestamp, MILLIS_TO_ENQUEUE);
 			return;
 		}
-		log.warning("backup complete, starting bigquery ingestion");
-		log.warning("gsHandleOfBackup: " + gsHandleOfBackup);
+		log.info("backup complete, starting bigquery ingestion");
+		log.info("gsHandleOfBackup: " + gsHandleOfBackup);
 
 		AppIdentityCredential credential = new AppIdentityCredential(AnalysisConstants.SCOPES);
 
@@ -153,8 +155,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		}
 
 		if (!exporterConfig.appendTimestampToDatatables()) {
-			// we aren't appending the timestamps so delete the old tables if
-			// they exist
+			// we aren't appending the timestamps so delete the old tables if they exist
 			for (String kind : exporterConfig.getEntityKindsToExport()) {
 				boolean found = true;
 				try {
@@ -166,6 +167,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 				}
 
 				if (found) {
+				  log.info("Deleting old BigQuery table for kind: " + kind);
 					bigquery.tables().delete(exporterConfig.getBigqueryProjectId(), exporterConfig.getBigqueryDatasetId(), kind).execute();
 				}
 			}
@@ -174,7 +176,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 		// now create the ingestion
 		for (String kind : exporterConfig.getEntityKindsToExport()) {
 			String gsUrl = convertHandleToUrl(gsHandleOfBackup, kind);
-			log.warning("gsUrl: " + gsUrl);
+			log.info("Ingest into BigQuery, gsUrl: " + gsUrl + ", kind: " + kind);
 
 			Job job = new Job();
 			JobConfiguration config = new JobConfiguration();
@@ -195,7 +197,7 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 			Insert insert = bigquery.jobs().insert(exporterConfig.getBigqueryProjectId(), job);
 
 			JobReference jr = insert.execute().getJobReference();
-			log.warning("Uri: " + gsUrl + ", JobId: " + jr.getJobId());
+			log.info("Ingest job for BigQuery, gsUrl: " + gsUrl + ", kind: " + kind + ", JobId: " + jr.getJobId());
 		}
 	}
 
@@ -206,14 +208,14 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
 	}
 
 	private String checkAndGetCompletedBackupGSHandle(String backupName) throws IOException {
-		log.warning("backupName: " + backupName);
+		log.info("checkAndGetCompletedBackupGSHandle, backupName: " + backupName);
 
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 		Query q = new Query("_AE_Backup_Information");
 
-		// for some reason the datastore admin code appends the date to the backup name even when creating programatically,
-		// so test for greater than or equal to and then take the first result
+		// For some reason the datastore admin code appends the date to the backup name even when creating programatically,
+		// so test for greater than or equal to and then take the first result.
 		FilterPredicate greater = new FilterPredicate("name", FilterOperator.GREATER_THAN_OR_EQUAL, backupName);
 		FilterPredicate less = new FilterPredicate("name", FilterOperator.LESS_THAN_OR_EQUAL, backupName + "Z");
 		List<Query.Filter> filters = new ArrayList<Query.Filter>();
@@ -227,8 +229,13 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
   		List<Entity> results = pq.asList(FetchOptions.Builder.withLimit(1));
   		if (results.size() != 1 || !results.get(0).getProperty("name").toString().contains(backupName)) {
   		  String message = "BuiltinDatatoreToBigqueryIngesterTask: can't find backupName: " + backupName;
-  			System.err.println(message);
+  		  String resultsNames = "Results names: [";
+  		  for (int i = 0; i < results.size(); ++i) {
+  		    resultsNames += results.get(i).getProperty("name").toString();
+  		  }
+  		  resultsNames +=  "]";
   			log.severe(message);
+  			log.severe(resultsNames);
   			return null;
   		}
   		Entity result = results.get(0);
@@ -236,11 +243,11 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
   		Object completion = result.getProperty("complete_time");
   		Object gs_handle_obj = result.getProperty("gs_handle");
   		if (gs_handle_obj == null) {
-  		  log.warning("Backup has no gs handle: "+result.toString());
+  		  log.severe("Backup has no gs handle: "+result.toString());
   			return null;
   		}
-  		log.warning("gs handle object: " + gs_handle_obj.toString());
-  		log.warning("gs handle obj type: " + gs_handle_obj.getClass().toString());
+  		log.info("gs handle object: " + gs_handle_obj.toString());
+  		log.info("gs handle obj type: " + gs_handle_obj.getClass().toString());
 
   		String gs_handle = null;
   		if (gs_handle_obj instanceof String) {
@@ -255,10 +262,10 @@ public class BuiltinDatastoreToBigqueryIngesterTask extends HttpServlet {
   			keyResult = KeyFactory.keyToString(result.getKey());
   		}
 
-  		log.warning("result: " + result);
-  		log.warning("complete_time: " + completion);
-  		log.warning("keyResult: " + keyResult);
-  		log.warning("gs_handle: " + gs_handle);
+  		log.info("checkAndGetCompletedBackupGSHandle, result: " + result);
+  		log.info("checkAndGetCompletedBackupGSHandle, complete_time: " + completion);
+  		log.info("checkAndGetCompletedBackupGSHandle, keyResult: " + keyResult);
+  		log.info("checkAndGetCompletedBackupGSHandle, gs_handle: " + gs_handle);
 
   		return gs_handle;
 		} catch (Exception ex) {
