@@ -55,6 +55,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		String bigqueryDatasetId = exporterConfig.getBigqueryDatasetId();
 		String bigqueryProjectId = exporterConfig.getBigqueryProjectId();
 		boolean skipExport = exporterConfig.shouldSkipExportToBigquery();
+		boolean runAsService = exporterConfig.runAsService();
 		
 		if (!AnalysisUtility.areParametersValid(bucketName, bigqueryProjectId) || (!skipExport && !AnalysisUtility.areParametersValid(bigqueryDatasetId))) {
 			resp.getWriter().write(AnalysisUtility.failureJson("Exporter config returned null for one of the params"));
@@ -74,7 +75,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		String backupName = AnalysisUtility.getPreBackupName(timestamp, exporterConfig.getBackupNamePrefix());
 		
 		// start the backup task
-		TaskOptions t = createBackupTaskOptions(backupName, exporterConfig.getEntityKindsToExport(), bucketName, queue.getQueueName());				
+		TaskOptions t = createBackupTaskOptions(backupName, exporterConfig.getEntityKindsToExport(), bucketName, queue.getQueueName(), runAsService);				
 		queue.add(t);
 		
 		// start another task to do the actual import into bigquery
@@ -85,7 +86,7 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		resp.getWriter().println(AnalysisUtility.successJson("successfully kicked off backup job: " + backupName + ", export to bigquery will begin once backup is complete."));
 	}
 	
-	private TaskOptions createBackupTaskOptions(String backupName, List<String> kindsToExport, String bucketName, String queueName) {
+	private TaskOptions createBackupTaskOptions(String backupName, List<String> kindsToExport, String bucketName, String queueName, boolean runAsService) {
 		TaskOptions t = TaskOptions.Builder.withUrl("/_ah/datastore_admin/backup.create");
 		t.param("name", backupName);
 		for (String kind : kindsToExport) {
@@ -93,7 +94,8 @@ public class BuiltinDatastoreToBigqueryCronTask extends HttpServlet {
 		}
 		t.param("filesystem", "gs");
 		t.param("gs_bucket_name", bucketName);
-		t.param("run_as_a_service", Boolean.TRUE.toString());
+		// Do not include run_as_a_service parameter when runAsService is false, because setting it to 'false' will not work.
+		if (runAsService) t.param("run_as_a_service", Boolean.valueOf(runAsService).toString());
 		
 		t.param("queue", queueName);
 		
