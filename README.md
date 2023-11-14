@@ -1,3 +1,8 @@
+## This project is archived
+
+In the intervening 8-ish years, the GCP ecosystem has matured to a point where this project is both unnecessary and no longer functions.
+
+
 # What is this?
 
 The Mache framework is a Java App Engine library that makes it easy
